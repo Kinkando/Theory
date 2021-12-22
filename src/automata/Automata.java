@@ -299,7 +299,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         if(fd.getFile() != null) {
             boolean extensionFormatCheck = fd.getFile().contains(".txt") && 
                     fd.getFile().lastIndexOf(".txt") == fd.getFile().length()-(".txt".length());
-            if(!extensionFormatCheck || !FileManager.openFile(vertexs, edges, fd.getDirectory()+fd.getFile())) {
+            if(!extensionFormatCheck || !FileManager.openFile(fd.getDirectory()+fd.getFile(), inputAlphabet, vertexs, edges)) {
                 showErrorMaterialDialog("Error", "Can not open file '"+fd.getFile()+"'");
             }
         }
@@ -317,7 +317,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             else if(!fd.getFile().contains(".txt"))
                 filePath += ".txt";
             filePath = fd.getDirectory()+filePath;
-            FileManager.saveFile(filePath, vertexs, edges);
+            FileManager.saveFile(filePath, inputAlphabet, vertexs, edges);
         }
     }
     
@@ -358,11 +358,13 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     private void createVertexAction(ActionEvent ae) {
         if(createEdgeButton.isSelected())
             createEdgeButton.setSelected(false);
+        // Change cursor
     }
     
     private void createEdgeAction(ActionEvent ae) {
         if(createVertexButton.isSelected())
             createVertexButton.setSelected(false);
+        // Change cursor
     }
     
     private void manualInputAction(ActionEvent ae) {
@@ -702,6 +704,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             // Check repeat state
 
             // Change position to around circle (not center but border)
+            
+            // Check when input is complete, then can't be create
 
             Vertex target = null;
             for (Vertex t : vertexs) {
