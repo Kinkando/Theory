@@ -37,9 +37,10 @@ public class FileManager {
                 ;
     }
     
-//    private static boolean isArray(Class<?> c) {
-//        return c.isArray() || c.equals(ArrayList.class);
-//    }
+    /*
+    saveFile: receive multiple parameters that must be Array of PrimitiveDataType or ArrayList of (Vertex and Edge) only
+    Vertex and Edge Class: accept field { primitive data type (include String) and Array of String ony }, otherwise will skip save that field
+    */
     
     public static void saveFile(String filePath, Object... objectList) {
         int stamp = 0;
@@ -139,13 +140,9 @@ public class FileManager {
         catch (IOException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException ex) {
             System.err.println(ex);
         }
-        
-        
-        
-//        resetSelect();
     }
         
-    public static boolean openFile(ArrayList<Vertex> vertexs, ArrayList<Edge> edges, String filePath) {
+    public static boolean openFile(String filePath, Object... objectList) {
         ArrayList<Vertex> vertex = new ArrayList<>();
         ArrayList<Edge> edge = new ArrayList<>();
         
@@ -153,31 +150,41 @@ public class FileManager {
         // check inputAlphabetSet must match with each edges and not be empty
         
         
-        return false;
         // if data correct, then copy vertex and edge to vertexs and edges
-        // otherwise, then not change
+        // otherwise, then not change (include must not vertex name repeat)
         
-        // Linked vertex object reference to each edge
-//        for (Edge e : Edges) {
-//            if (e.vertexA != null) {
-//                int id = e.vertexA.id;
-//                for (Vertex v : Vertexs) {
-//                    if (v.id == id) {
-//                        e.vertexA = v;
+        
+        
+        // Absolute correct format and consistency of data, then copy vertex and edge to array of formal parameter
+        // include Array of String (String[] inputAlphabet)
+        
+        
+        
+        // Linked vertex object reference to each edges
+//        for(Vertex v : vertexs) 
+//            v.setSelected(false);
+//        for (Edge e : edges) {
+//            e.setSelected(false);
+//            if (e.getInputState() != null) {
+//                String name = e.getInputState().getName();
+//                for (Vertex v : vertexs) {
+//                    if (v.getName().equals(name)) {
+//                        e.setInputState(v);
 //                        break;
 //                    }
 //                }
 //            }
-//            if (e.vertexB != null) {
-//                int id = e.vertexB.id;
-//                for (Vertex v : Vertexs) {
-//                    if (v.id == id) {
-//                        e.vertexB = v;
+//            if (e.getOutputState() != null) {
+//                String name = e.getOutputState().getName();
+//                for (Vertex v : vertexs) {
+//                    if (v.getName().equals(name)) {
+//                        e.setOutputState(v);
 //                        break;
 //                    }
 //                }
 //            }
 //        }
+        return false;
     }
 }
 
