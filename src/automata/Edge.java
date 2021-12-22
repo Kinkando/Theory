@@ -6,7 +6,7 @@ import java.awt.geom.QuadCurve2D;
 public class Edge {
     public static final int ARROW_HEAD_SIZE = 15;
     public static int stroke = 2;
-    private final Vertex inputState, outputState;
+    private Vertex inputState, outputState;
     private String[] character;
     private boolean selected;
     private int characterWidth, characterHeight, xCenter, yCenter, rCenter, xCharacter, yCharacter;
@@ -29,8 +29,16 @@ public class Edge {
         character = text;
     }
     
+    public void setInputState(Vertex inputState) {
+        this.inputState = inputState;
+    }
+    
     public Vertex getInputState() {
         return inputState;
+    }
+    
+    public void setOutputState(Vertex outputState) {
+        this.outputState = outputState;
     }
     
     public Vertex getOutputState() {
