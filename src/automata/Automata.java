@@ -293,16 +293,32 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     
     private void openAction(ActionEvent ae) {
         tooltipText.close();
-        
-        
-        
+        FileDialog fd = new FileDialog(frame, "Open File", FileDialog.LOAD);
+        fd.setFile("*.txt");
+        fd.setVisible(true);
+        if(fd.getFile() != null) {
+            boolean extensionFormatCheck = fd.getFile().contains(".txt") && 
+                    fd.getFile().lastIndexOf(".txt") == fd.getFile().length()-(".txt".length());
+            if(!extensionFormatCheck || !FileManager.openFile(vertexs, edges, fd.getDirectory()+fd.getFile())) {
+                showErrorMaterialDialog("Error", "Can not open file '"+fd.getFile()+"'");
+            }
+        }
     }
     
     private void saveAction(ActionEvent ae) {
         tooltipText.close();
-        
-        
-        
+        FileDialog fd = new FileDialog(frame, "Save File", FileDialog.SAVE);
+        fd.setFile("*.txt");
+        fd.setVisible(true);
+        if(fd.getFile() != null) {
+            String filePath = fd.getFile();
+            if(fd.getFile().lastIndexOf(".txt") != fd.getFile().indexOf(".txt"))
+                filePath = filePath.substring(0, filePath.length()-4);
+            else if(!fd.getFile().contains(".txt"))
+                filePath += ".txt";
+            filePath = fd.getDirectory()+filePath;
+            FileManager.saveFile(filePath, vertexs, edges);
+        }
     }
     
     private void undoAction(ActionEvent ae) {
