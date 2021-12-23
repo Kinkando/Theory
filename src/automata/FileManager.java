@@ -218,13 +218,14 @@ public class FileManager {
     
     private static int endPoint(int pointer, Object[] objects) {
         String bracketGroup = "";
-        for(; pointer<objects.length-1 && !isValidExpression(bracketGroup); pointer++) {
+        while(pointer<objects.length-1 && !isValidExpression(bracketGroup)) {
+            pointer++;
             String object = objects[pointer].toString().trim();
             if(isBracket(object)) {
                 bracketGroup += cutBracket(object);
             }
         }
-        return pointer-1;
+        return pointer;
     }
     
     public static boolean openFile(String filePath, Object... objectList) {
@@ -234,44 +235,26 @@ public class FileManager {
         try {
             br = new BufferedReader(new FileReader(filePath));
             Object[] objects = br.lines().toArray();
-//            int loadList = 0;
             String[][] groups = new String[objectList.length][];
             int pointer = 0;
             for(int round=0; round<objectList.length; round++) {
-                String bracketGroup = "";
                 int start = pointer+1;
-                while(pointer<objects.length-1 && !isValidExpression(bracketGroup)) {
-                    pointer++;
-                    String object = objects[pointer].toString().trim();
-                    if(isBracket(object)) {
-                        bracketGroup += cutBracket(object);
-                    }
-                }
-//                for(; pointer<objects.length-1 && !isValidExpression(bracketGroup); pointer++) {
-//                    String object = objects[pointer].toString().trim();
-//                    if(isBracket(object)) {
-//                        bracketGroup += cutBracket(object);
-//                    }
-//                }
-                int end = pointer;
-                String[] subGroup = new String[end-start-1];
+                pointer = endPoint(pointer, objects);
+                String[] subGroup = new String[pointer-start-1];
                 int index = 0;
-                for(int i=start+1; i<end; i++) {
+                for(int i=start+1; i<pointer; i++) {
                     subGroup[index++] = objects[i].toString().trim();
-//                    System.out.println(subGroup[index-1]);
                 }
                 groups[round] = subGroup;
-//                System.out.println(bracketGroup+" : "+start+"-"+end+" : "+(end-start-1));
             }
-//            for(String[] objs : groups)
-//                for(String obj : objs)
-//                    System.out.println(obj);
             for(String[] group : groups) {
-                for(String subGroup : group) {
-//                    if()
-                    System.out.print(subGroup);
+                for(String sub : group) {
+//                    if(sub.equals("{")) {
+//                        
+//                    }
+                    System.out.println(sub);
                 }
-                System.out.println("");
+                System.out.println("----------------------------------");
             }
         }
         catch(IOException ex) {
