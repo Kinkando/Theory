@@ -6,15 +6,20 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FileManager {
     
-    private static String printTab(Integer tabStamp) {
+    private static String printTab(int stamp) {
         int space = 5;
         String print = "", tab = "";
         for(int i=0; i<space; i++)
             tab += " ";
-        for(int i=0; i<tabStamp; i++)
+        for(int i=0; i<stamp; i++)
             print += tab;
         return print;
     }
@@ -42,13 +47,68 @@ public class FileManager {
     Vertex and Edge Class: accept field { primitive data type (include String) and Array of String ony }, otherwise will skip save that field
     */
     
+    public static String objectClass(int stamp, Object obj, int objLength) {
+        String enter = System.getProperty("line.separator");
+        String commaSeparator = ","+enter;
+        String text = "";
+        text += ("{"+enter);
+        stamp++;
+        Field[] fields = obj.getClass().getDeclaredFields();
+        boolean isFirst = true;
+        for(int k=0; k<fields.length; k++) {
+            try {
+                Field field = fields[k];
+                field.setAccessible(true);
+                Object ob = field.get(obj);
+                if(ob.getClass().equals(String.class)) {
+                    text += ((isFirst ? "" : commaSeparator)+printTab(stamp)+key(field.getName())+"\""+ob+"\"");
+                    isFirst = false;
+                }
+                else if(isPrimitiveType(ob.getClass())) {
+                    text += ((isFirst ? "" : commaSeparator)+printTab(stamp)+key(field.getName())+ob);
+                    isFirst = false;
+                }
+                else {
+                    if(field.getType().isArray()) {   //Array of String
+                        text += ((isFirst ? "" : commaSeparator)+printTab(stamp)+key(field.getName()));
+                        text += ("[");
+                        isFirst = false;
+                        int length = Array.getLength(ob);
+                        if(length == 0) {
+                            text += ("]"+(k != objLength-1 ? commaSeparator : enter));
+                            continue;
+                        }
+                        text += (enter);
+                        stamp++;
+                        for(int p=0; p<length; p++) {
+                            text += (printTab(stamp)+"\""+Array.get(ob, p)+"\"");
+                            text += (p != length-1 ? commaSeparator : enter);
+                        }
+                        text += (printTab(--stamp)+"]");
+                    }
+                    else if(field.getType().equals(Vertex.class)) {   //Array of String
+                        text += ((isFirst ? "" : commaSeparator)+printTab(stamp)+key(field.getName()));
+                        text += ("");
+                        text += objectClass(stamp, field.get(obj), 0);
+                        text += (enter+printTab(stamp)+"}");
+                    }
+                }
+            } 
+            catch (IllegalArgumentException | IllegalAccessException ex) {
+                System.err.println(ex);
+            }
+        }
+        return text;
+    }
+    
     public static void saveFile(String filePath, Object... objectList) {
         int stamp = 0;
         final String enter = System.getProperty("line.separator");
         final String commaSeparator = ","+enter;
         final String[] variableName = {"inputAlphabet", "vertexs", "edges"};
+        BufferedWriter bw = null;
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(filePath));
+            bw = new BufferedWriter(new FileWriter(filePath));
             bw.write("{"+enter);
             stamp++;
             for(int i=0; i<objectList.length; i++) {
@@ -73,40 +133,8 @@ public class FileManager {
                         else if(isPrimitiveType(obj.getClass())) 
                             bw.write(obj.toString());
                         else {
-                            bw.write("{"+enter);
-                            stamp++;
-                            Field[] fields = obj.getClass().getDeclaredFields();
-                            for(int k=0; k<fields.length; k++) {
-                                Field field = fields[k];
-                                field.setAccessible(true);
-                                Object ob = field.get(obj);
-                                if(ob.getClass().equals(String.class)) 
-                                    bw.write(printTab(stamp)+key(field.getName())+"\""+ob+"\"");
-                                else if(isPrimitiveType(ob.getClass())) 
-                                    bw.write(printTab(stamp)+key(field.getName())+ob);
-                                else {
-                                    if(field.getType().isArray()) {   //Array of String
-                                        bw.write(printTab(stamp)+key(field.getName()));
-                                        bw.write("[");
-                                        int length = Array.getLength(ob);
-                                        if(length == 0) {
-                                            bw.write("]"+(k != objectList.length-1 ? commaSeparator : enter));
-                                            continue;
-                                        }
-                                        bw.write(enter);
-                                        stamp++;
-                                        for(int p=0; p<length; p++) {
-                                            bw.write(printTab(stamp)+"\""+Array.get(ob, p)+"\"");
-                                            bw.write(p != length-1 ? commaSeparator : enter);
-                                        }
-                                        bw.write(printTab(--stamp)+"]");
-                                    }
-                                    else
-                                        continue;
-                                }
-                                bw.write(k != fields.length-1 ? commaSeparator : enter);
-                            }
-                            bw.write(printTab(--stamp)+"}");
+                            bw.write(objectClass(stamp, obj, objectList.length));
+                            bw.write(enter+printTab(stamp)+"}");
                         }
                         bw.write(j != size-1 ? commaSeparator : enter);
                     }
@@ -135,16 +163,132 @@ public class FileManager {
                 }
             }
             bw.write("}");
-            bw.close();
         }
         catch (IOException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException ex) {
             System.err.println(ex);
         }
+        finally {
+            try {
+                if(bw != null)
+                    bw.close();
+            } 
+            catch (IOException ex) {
+                System.err.println(ex);
+            }
+        }
     }
-        
+    
+    private static boolean isBracket(String str) {
+        boolean bracketOnly = (str.equals("{") || str.equals("}") || str.equals("[") || str.equals("]") || str.equals("},") || str.equals("],"));
+        boolean bracketWithKey = (str.contains(": {") || str.contains(": [")) &&
+                                 (str.indexOf(": {") == str.lastIndexOf(": {") || str.indexOf(": [") == str.lastIndexOf(": ["));
+        return bracketOnly || bracketWithKey;
+    }
+    
+    private static String cutBracket(String str) {
+        if(str.contains("{"))
+            return "{";
+        else if(str.contains("["))
+            return "[";
+        else if(str.contains("}"))
+            return "}";
+        return "]";
+    }
+    
+    private static boolean isValidExpression(String expression) {
+        if(expression.isEmpty())
+            return false;
+        Map<Character, Character> openClosePair = new HashMap<>();
+        openClosePair.put(')', '(');
+        openClosePair.put('}', '{');
+        openClosePair.put(']', '[');
+        Stack<Character> stack = new Stack<>();
+        for (char ch : expression.toCharArray()) {
+            if (openClosePair.containsKey(ch)) {
+                if (stack.isEmpty() || stack.pop() != openClosePair.get(ch)) {
+                    return false;
+                }
+            } 
+            else if (openClosePair.values().contains(ch)) {
+                stack.push(ch);
+            }
+        }
+        return stack.isEmpty();
+    }
+    
+    private static int endPoint(int pointer, Object[] objects) {
+        String bracketGroup = "";
+        for(; pointer<objects.length-1 && !isValidExpression(bracketGroup); pointer++) {
+            String object = objects[pointer].toString().trim();
+            if(isBracket(object)) {
+                bracketGroup += cutBracket(object);
+            }
+        }
+        return pointer-1;
+    }
+    
     public static boolean openFile(String filePath, Object... objectList) {
         ArrayList<Vertex> vertex = new ArrayList<>();
         ArrayList<Edge> edge = new ArrayList<>();
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(filePath));
+            Object[] objects = br.lines().toArray();
+//            int loadList = 0;
+            String[][] groups = new String[objectList.length][];
+            int pointer = 0;
+            for(int round=0; round<objectList.length; round++) {
+                String bracketGroup = "";
+                int start = pointer+1;
+                while(pointer<objects.length-1 && !isValidExpression(bracketGroup)) {
+                    pointer++;
+                    String object = objects[pointer].toString().trim();
+                    if(isBracket(object)) {
+                        bracketGroup += cutBracket(object);
+                    }
+                }
+//                for(; pointer<objects.length-1 && !isValidExpression(bracketGroup); pointer++) {
+//                    String object = objects[pointer].toString().trim();
+//                    if(isBracket(object)) {
+//                        bracketGroup += cutBracket(object);
+//                    }
+//                }
+                int end = pointer;
+                String[] subGroup = new String[end-start-1];
+                int index = 0;
+                for(int i=start+1; i<end; i++) {
+                    subGroup[index++] = objects[i].toString().trim();
+//                    System.out.println(subGroup[index-1]);
+                }
+                groups[round] = subGroup;
+//                System.out.println(bracketGroup+" : "+start+"-"+end+" : "+(end-start-1));
+            }
+//            for(String[] objs : groups)
+//                for(String obj : objs)
+//                    System.out.println(obj);
+            for(String[] group : groups) {
+                for(String subGroup : group) {
+//                    if()
+                    System.out.print(subGroup);
+                }
+                System.out.println("");
+            }
+        }
+        catch(IOException ex) {
+            System.err.println(ex);
+        } 
+//        catch (IllegalArgumentException | IllegalAccessException ex) {
+//            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+        finally {
+            try {
+                if(br != null)
+                    br.close();
+            } 
+            catch (IOException ex) {
+                System.err.println(ex);
+            }
+        }
         
         
         // check inputAlphabetSet must match with each edges and not be empty
@@ -184,91 +328,6 @@ public class FileManager {
 //                }
 //            }
 //        }
-        return false;
+        return true;
     }
 }
-
-
-
-
-
-
-//        final String enter = "\n";
-//        final String commaSeparator = ","+enter;
-//        try {
-//            System.out.print("{"+enter);
-//            for(int i=0; i<objectList.length; i++) {
-//                Object object = objectList[i];
-//                System.out.print(printTab(++stamp)+key(object.getClass().getName()));
-//                if(object.getClass().equals(ArrayList.class)) {
-//                    System.out.print("["+enter);
-//                    stamp++;
-//                    final Method m = object.getClass().getMethod("get", int.class);
-//                    Method listSize = object.getClass().getMethod("size");
-//                    int size = Integer.parseInt(listSize.invoke(object).toString());
-//                    for(int j=0; j<size; j++) {
-//                        Object obj = m.invoke(object, j);
-//                        System.out.print(printTab(stamp));
-//                        if(obj.getClass().equals(String.class))
-//                            System.out.print("\""+obj+"\"");
-//                        else if(isPrimitiveType(obj.getClass())) 
-//                            System.out.print(obj);
-//                        else {
-//                            System.out.print("{"+enter);
-//                            stamp++;
-//                            Field[] fields = obj.getClass().getDeclaredFields();
-//                            for(int k=0; k<fields.length; k++) {
-//                                Field field = fields[k];
-//                                field.setAccessible(true);
-//                                Object ob = field.get(obj);
-//                                if(ob.getClass().equals(String.class)) 
-//                                    System.out.print(printTab(stamp)+key(field.getName())+"\""+ob+"\"");
-//                                else if(isPrimitiveType(ob.getClass())) 
-//                                    System.out.print(printTab(stamp)+key(field.getName())+ob);
-//                                else {
-//                                    if(field.getType().isArray()) {   //Array of String
-//                                        System.out.print(printTab(stamp)+key(field.getName()));
-//                                        System.out.print("["+enter);
-//                                        stamp++;
-//                                        int length = Array.getLength(ob);
-//                                        for(int p=0; p<length; p++) {
-//                                            System.out.print(printTab(stamp)+"\""+Array.get(ob, p)+"\"");
-//                                            System.out.print(p != length-1 ? commaSeparator : enter);
-//                                        }
-//                                        System.out.print(printTab(--stamp)+"]");
-//                                    }
-//                                    else
-//                                        continue;
-//                                }
-//                                System.out.print(k != fields.length-1 ? commaSeparator : enter);
-//                            }
-//                            System.out.print(printTab(--stamp)+"}");
-//                        }
-//                        System.out.print(j != size-1 ? commaSeparator : enter);
-//                    }
-//                    System.out.print(printTab(--stamp)+"]"+(i != objectList.length-1 ? commaSeparator : enter));
-//                    stamp--;
-//                }
-//                else if(object.getClass().isArray()) {
-//                    System.out.print("["+enter);
-//                    stamp++;
-//                    int length = Array.getLength(object);
-//                    for(int p=0; p<length; p++) {
-//                        Object ob = Array.get(object, p);
-//                        System.out.print(printTab(stamp));
-//                        if(ob.getClass().equals(String.class))
-//                            System.out.print("\""+ob+"\"");
-//                        else if(isPrimitiveType(ob.getClass())) 
-//                            System.out.print(Array.get(ob, p));
-//                        System.out.print(p != length-1 ? commaSeparator : enter);
-//                    }
-//                    System.out.print(printTab(--stamp)+"]");
-//                    System.out.print(i != objectList.length-1 ? commaSeparator : enter);
-//                    stamp--;
-//                }
-//            }
-//            System.out.print("}");
-//        }
-//        catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException ex) {
-//            System.err.println(ex);
-//        }
