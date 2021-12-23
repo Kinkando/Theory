@@ -3,27 +3,39 @@ package automata;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 
 public class TooltipText extends JLabel implements MouseMotionListener, MouseListener {
     private Component[] components;
+    private final Font tooltipFont;
+    private final Color backgroundColor, foregroundColor, borderColor;
+    
+    public TooltipText() {
+        borderColor = Color.BLACK;
+        foregroundColor = Color.BLACK;
+        backgroundColor = new Color(254,255,208);
+        tooltipFont = new Font("TH Sarabun New", Font.PLAIN, 20);
+    }
 
     public void setComponents(Component[] components) {
         this.components = components;
-        setFont(Vertex.font);
-        setText("");
+        setFont(tooltipFont);
         setHorizontalAlignment(SwingConstants.CENTER);
         setVerticalAlignment(SwingConstants.CENTER);
         setOpaque(true);
-        setBackground(new Color(254,255,208));
-        setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        setBorder(BorderFactory.createLineBorder(borderColor, 1));
+        setForeground(foregroundColor);
+        setBackground(backgroundColor);
         setSize(new Dimension(100,100));
         setVisible(false);
     }
@@ -38,9 +50,15 @@ public class TooltipText extends JLabel implements MouseMotionListener, MouseLis
         String text = "";
         boolean found = false;
         for(Component cmp : components) {
-            if(x >= cmp.getX() && x<= cmp.getX()+cmp.getWidth() && y>= cmp.getY() && y <= cmp.getY()+cmp.getHeight()) {
+            found = x >= cmp.getX() && x<= cmp.getX()+cmp.getWidth() && y>= cmp.getY() && y <= cmp.getY()+cmp.getHeight();
+            if(cmp instanceof JButton) {
+                ((JButton)cmp).setContentAreaFilled(found && ((JButton)cmp).isEnabled());
+            }
+            else if(cmp instanceof JToggleButton) {
+                ((JToggleButton)cmp).setContentAreaFilled(found || ((JToggleButton)cmp).isSelected());
+            }
+            if(found) {
                 text = cmp.getName();
-                found = true;
                 break;
             }
         }
@@ -48,11 +66,13 @@ public class TooltipText extends JLabel implements MouseMotionListener, MouseLis
             setVisible(false);
             return;
         }
-        int width = g.getFontMetrics(Vertex.font).stringWidth(text);
-        int height = g.getFontMetrics(Vertex.font).getHeight();
+        int width = g.getFontMetrics(tooltipFont).stringWidth(text)+10;
+        int height = g.getFontMetrics(tooltipFont).getHeight();
+        final int positionX = x+width > this.getParent().getWidth() ? x-width : x;
+        final int positionY = y+height+10 > this.getParent().getHeight() ? (y+10)-height : y+10;
         setText(text);
-        setSize(width+10, height);
-        setLocation(x+5, y+5);
+        setSize(width, height);
+        setLocation(positionX, positionY);
         setVisible(true);
     }
 
