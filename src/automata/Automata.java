@@ -979,6 +979,25 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         }
     }
     
+    private void remove() {
+        if (selected instanceof Vertex) {
+            ArrayList<Edge> adjacencyEdge = new ArrayList<>();
+            for (Edge t : edges)
+                if (t.getInputState() == selected || t.getOutputState() == selected) 
+                    adjacencyEdge.add(t);
+            adjacencyEdge.forEach((t) -> { 
+                edges.remove(t);
+            });
+            vertexs.remove((Vertex)selected);
+            selected = null;
+        } 
+        else if (selected instanceof Edge) {
+            Edge t = (Edge) selected;
+            edges.remove((Edge)selected);
+            selected = null;
+        }
+    }
+    
     //KeyListener
     @Override
     public void keyTyped(KeyEvent ke) {
@@ -986,17 +1005,39 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         if (key == 18 && clearButton.isEnabled())       // ctrl + r
             clearAction(null);
         else if (key == 19) {
+            saveButton.setContentAreaFilled(true);
             saveAction(null);   // ctrl + s
         } 
-        else if (key == 15)     // ctrl + o
+        else if (key == 15) {    // ctrl + o
+            openButton.setContentAreaFilled(true);
             openAction(null);
+        }
         else if(key == 25 && redoButton.isEnabled())    //ctrl + y
             redoAction(null);
         else if(key == 26 && undoButton.isEnabled())    //ctrl + z
-            undoAction(null);
-        
-        //REMOVE VERTEX OR EDGE
-        
+            undoAction(null);   
+        else if(key == 5) {
+            createVertexButton.setSelected(!createVertexButton.isSelected());
+            createVertexAction(null);
+            if(!createVertexButton.isSelected()) 
+                createVertexButton.setContentAreaFilled(false);
+        }
+        else if(key == 6) {
+            createEdgeButton.setSelected(!createEdgeButton.isSelected());
+            createEdgeAction(null);
+            if(!createEdgeButton.isSelected()) 
+                createEdgeButton.setContentAreaFilled(false);
+        }
+        else if(key == 10)
+            manualInputAction(null);
+        else if(key == 20) {
+            inputAlphabetButton.setContentAreaFilled(true);
+            inputAlphabetAction(null);
+        }
+        else if(key == 127) {
+            remove();
+            drawingPanel.repaint();
+        }
     }
 
     @Override
