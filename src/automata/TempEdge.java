@@ -5,6 +5,7 @@ import java.awt.*;
 public class TempEdge {
     public Vertex source;
     public int x, y;
+    private final Color color = new Color(255, 51, 255);
     
     public TempEdge(int x, int y) {
         this.x = x;
@@ -16,7 +17,7 @@ public class TempEdge {
     }
 
     public void line(Graphics2D g) {
-        g.setColor(Color.RED);
+        g.setColor(color);
         g.setStroke(new BasicStroke(2));
         if(source == null)
             return;

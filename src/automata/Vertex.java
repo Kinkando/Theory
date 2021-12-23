@@ -7,7 +7,7 @@ public class Vertex {
     private String name;
     private boolean initialState, acceptedState, selected;
     public static int stroke = 2, r = 24, shift = 16;
-    public static Color foregroundColor = Color.BLACK, backgroundColor = Color.WHITE, highlightColor = Color.BLUE;
+    public static Color foregroundColor = Color.BLACK, backgroundColor = Color.WHITE, highlightColor = Color.RED;
     public static Font font = new Font("TH Sarabun New", Font.PLAIN, 24);
     
     public Vertex(int x, int y, boolean acceptedState, boolean initialState) {
