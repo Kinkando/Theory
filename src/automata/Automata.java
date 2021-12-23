@@ -2,25 +2,26 @@ package automata;
 import java.util.*;
 import java.awt.event.*;
 import java.awt.*;
-import java.lang.reflect.Field;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Automata implements MouseListener, MouseMotionListener, KeyListener {
-    
-    /*
-        Merge JButton (with icon) and TooltipText Class to IconButton Class
-        and can setBackgroundColor(default null), setPressColor(or HoldColor), setEnteredColor(or CoverColor), [setReleaseColor]
-        and can setTooltipText
-        and add boolean haveTooltipText variable
-    
-        TooltipText can setBackgroundColor, setBorderColor, setForegroundColor, 
-        setFont, setSize, setPosition(bottom position case will display on top instead of below)
-    
-        Merge SwitchButton and TooltipText
-        and can setTooltipText(ActivatedText, InactivatedText)
-        and add boolean haveTooltipText variable
-    */
+    class Backup {
+        String[] inputAlphabetBackup;
+        ArrayList<Vertex> vertexsBackup;
+        ArrayList<Edge> edgesBackup;
+        public Backup() {
+            this.inputAlphabetBackup = inputAlphabet;
+            this.vertexsBackup = vertexs;
+            this.edgesBackup = edges;
+        }
+    }
     
     private final JFrame frame;
     private final JPanel drawingPanel, toolbarPanel;
@@ -324,33 +325,84 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     private void openAction(ActionEvent ae) {
         tooltipText.close();
         FileDialog fd = new FileDialog(frame, "Open File", FileDialog.LOAD);
-        fd.setFile("*.txt");
+        fd.setFile("*.json");
         fd.setVisible(true);
         if(fd.getFile() != null) {
-            boolean extensionFormatCheck = fd.getFile().contains(".txt") && 
-                    fd.getFile().lastIndexOf(".txt") == fd.getFile().length()-(".txt".length());
-            if(!extensionFormatCheck || !FileManager.openFile(fd.getDirectory()+fd.getFile(), inputAlphabet, vertexs, edges)) {
+            boolean extensionFormatCheck = fd.getFile().contains(".json") && 
+                    fd.getFile().lastIndexOf(".json") == fd.getFile().length()-(".json".length());
+            if(!extensionFormatCheck) 
                 showErrorMaterialDialog("Error", "Can not open file '"+fd.getFile()+"'");
-            }
+            open(fd.getDirectory()+fd.getFile());
+            drawingPanel.repaint();
         }
         openButton.setContentAreaFilled(false);
+    }
+    
+    private void open(String filePath) {
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath))) {
+            Backup backup = gson.fromJson(bufferedReader, Backup.class);
+            inputAlphabet = backup.inputAlphabetBackup;
+            vertexs = backup.vertexsBackup;
+            edges = backup.edgesBackup;
+            for(Vertex v : vertexs) 
+                v.setSelected(false);
+            for (Edge e : edges) {
+                e.setSelected(false);
+                if (e.getInputState() != null) {
+                    String name = e.getInputState().getName();
+                    for (Vertex v : vertexs) {
+                        if (v.getName().equals(name)) {
+                            e.setInputState(v);
+                            break;
+                        }
+                    }
+                }
+                if (e.getOutputState() != null) {
+                    String name = e.getOutputState().getName();
+                    for (Vertex v : vertexs) {
+                        if (v.getName().equals(name)) {
+                            e.setOutputState(v);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        catch(IOException ex) {
+            System.err.println(ex);
+        }   
     }
     
     private void saveAction(ActionEvent ae) {
         tooltipText.close();
         FileDialog fd = new FileDialog(frame, "Save File", FileDialog.SAVE);
-        fd.setFile("*.txt");
+        fd.setFile("*.json");
         fd.setVisible(true);
         if(fd.getFile() != null) {
             String filePath = fd.getFile();
-            if(fd.getFile().lastIndexOf(".txt") != fd.getFile().indexOf(".txt"))
+            if(fd.getFile().lastIndexOf(".json") != fd.getFile().indexOf(".json"))
                 filePath = filePath.substring(0, filePath.length()-4);
-            else if(!fd.getFile().contains(".txt"))
-                filePath += ".txt";
+            else if(!fd.getFile().contains(".json"))
+                filePath += ".json";
             filePath = fd.getDirectory()+filePath;
-            FileManager.saveFile(filePath, inputAlphabet, vertexs, edges);
+            save(filePath);
         }
         saveButton.setContentAreaFilled(false);
+    }
+    
+    private void save(String filePath) {
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        try (FileWriter writer = new FileWriter(filePath)) {
+            Backup backup = new Backup();
+            writer.write(gson.toJson(backup));
+            writer.close();
+        }
+        catch(IOException ex) {
+            System.err.println(ex);
+        }   
     }
     
     private void undoAction(ActionEvent ae) {
