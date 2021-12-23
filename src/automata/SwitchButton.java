@@ -5,18 +5,22 @@ import javax.swing.*;
 import java.awt.event.*;
 
 public class SwitchButton extends JPanel implements ActionListener{
-    private boolean activated = false, haveBorder = false, haveAnimated = false;
-    private Color buttonColor = Color.WHITE;
-    private Color activatedColor = Color.GREEN;
-    private Color inactivatedColor = Color.RED;
-    private int togglePosition, activatedPosition, speed = 5, delay = 20;
-    private final int inactivatedPosition, space = 8;
+    private boolean activated, border , animated;
+    private Color switchColor, activatedColor, inactivatedColor;
+    private int togglePosition, activatedPosition, inactivatedPosition, speed, delay;
+    private final int space;
     private final Timer time;
     
-    public SwitchButton(boolean haveAnimated, boolean haveBorder) {
-        super();
-        this.haveBorder = haveBorder;
-        this.haveAnimated = haveAnimated;
+    public SwitchButton() {
+        space = 8;
+        speed = 5;
+        delay = 20;
+        activated = false;
+        border = false;
+        animated = true;
+        switchColor = Color.WHITE;
+        activatedColor = Color.GREEN;
+        inactivatedColor = Color.RED;
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent me) {
@@ -27,7 +31,7 @@ public class SwitchButton extends JPanel implements ActionListener{
             public void mouseClicked(MouseEvent me) {
                 if(SwingUtilities.isLeftMouseButton(me)) {
                     activated = !activated;
-                    if(haveAnimated)
+                    if(animated)
                         time.start();
                     else
                         repaint();
@@ -39,42 +43,6 @@ public class SwitchButton extends JPanel implements ActionListener{
         time = new Timer(delay, this);
         time.setInitialDelay(0);
         setVisible(true);
-    }
-    
-    public SwitchButton(boolean haveAnimated) {
-        this(haveAnimated, false);
-    }
-    
-    public SwitchButton() {
-        this(true, false);
-    }
-    
-    @Override
-    public void setSize(Dimension d) {
-        super.setSize(d);
-        resizeActivatedPosition(getWidth()-(getHeight()/2)*2+space/2);
-    }
-    
-    @Override
-    public void setSize(int width, int height) {
-        super.setSize(width, height);
-        resizeActivatedPosition(getWidth()-(getHeight()/2)*2+space/2);
-    }
-
-    @Override
-    public void setBounds(Rectangle rctngl) {
-        super.setBounds(rctngl);
-        resizeActivatedPosition(getWidth()-(getHeight()/2)*2+space/2);
-    }
-
-    @Override
-    public void setBounds(int i, int i1, int i2, int i3) {
-        super.setBounds(i, i1, i2, i3);
-        resizeActivatedPosition(getWidth()-(getHeight()/2)*2+space/2);
-    }
-    
-    public void resizeActivatedPosition(int position) {
-        activatedPosition = position;
     }
 
     @Override
@@ -96,6 +64,34 @@ public class SwitchButton extends JPanel implements ActionListener{
 //            ((Timer)ae.getSource()).stop();
         }
     }
+    
+    @Override
+    public void setSize(Dimension d) {
+        super.setSize(d);
+        resizeActivatedPosition();
+    }
+    
+    @Override
+    public void setSize(int width, int height) {
+        super.setSize(width, height);
+        resizeActivatedPosition();
+    }
+
+    @Override
+    public void setBounds(Rectangle rctngl) {
+        super.setBounds(rctngl);
+        resizeActivatedPosition();
+    }
+
+    @Override
+    public void setBounds(int i, int i1, int i2, int i3) {
+        super.setBounds(i, i1, i2, i3);
+        resizeActivatedPosition();
+    }
+    
+    public void resizeActivatedPosition() {
+        activatedPosition = getWidth()-(getHeight()/2)*2+space/2;
+    }
 
     public boolean isActivated() {
         return activated;
@@ -106,12 +102,12 @@ public class SwitchButton extends JPanel implements ActionListener{
         togglePosition = activated ? activatedPosition : inactivatedPosition;
     }
 
-    public Color getButtonColor() {
-        return buttonColor;
+    public Color getSwitchColor() {
+        return switchColor;
     }
 
-    public void setButtonColor(Color buttonColor) {
-        this.buttonColor = buttonColor;
+    public void setSwitchColor(Color switchColor) {
+        this.switchColor = switchColor;
     }
 
     public Color getActivatedColor() {
@@ -130,22 +126,6 @@ public class SwitchButton extends JPanel implements ActionListener{
         this.inactivatedColor = inactivatedColor;
     }
 
-    public boolean isHaveBorder() {
-        return haveBorder;
-    }
-
-    public void setHaveBorder(boolean haveBorder) {
-        this.haveBorder = haveBorder;
-    }
-
-    public boolean isHaveAnimated() {
-        return haveAnimated;
-    }
-
-    public void setHaveAnimated(boolean haveAnimated) {
-        this.haveAnimated = haveAnimated;
-    }
-
     public int getSpeed() {
         return speed;
     }
@@ -161,12 +141,28 @@ public class SwitchButton extends JPanel implements ActionListener{
     public void setDelay(int delay) {
         this.delay = delay;
     }
+
+    public boolean haveBorder() {
+        return border;
+    }
+
+    public void setBorder(boolean border) {
+        this.border = border;
+    }
+
+    public boolean haveAnimated() {
+        return animated;
+    }
+
+    public void setAnimated(boolean animated) {
+        this.animated = animated;
+    }
     
     @Override
     public void paint(Graphics gr) {
         super.paint(gr);
         final int radius = getHeight()/2;
-        final int position = haveAnimated ? togglePosition : (activated ? activatedPosition : inactivatedPosition);
+        final int position = animated ? togglePosition : (activated ? activatedPosition : inactivatedPosition);
         Graphics2D g = (Graphics2D) gr;
         g.setStroke(new BasicStroke(1));
         
@@ -177,10 +173,10 @@ public class SwitchButton extends JPanel implements ActionListener{
         g.fillArc(getWidth()-radius*2, 0, radius*2-1, radius*2-1, 90, -180);
         
         // Button Switch
-        g.setColor(buttonColor);
+        g.setColor(switchColor);
         g.fillOval(position, space/2, radius*2-1-space, radius*2-1-space);
         
-        if(haveBorder) {
+        if(border) {
             // Button Body Border
             g.setColor(Color.black);
             g.drawLine(radius, 0, radius+getWidth()-radius*2, 0);   // if stroke = 1 then y = 0, otherwise y = 1
@@ -208,7 +204,7 @@ public class SwitchButton extends JPanel implements ActionListener{
         g.fillArc(getWidth()-radius*2, 0, radius*2-1, radius*2-1, 90, -180);
         
         // Button Switch
-        g.setColor(buttonColor);
+        g.setColor(switchColor);
         g.fillOval(buttonSide, 0, radius*2-1, radius*2-1);
         
         if(border) {
