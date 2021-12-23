@@ -2,10 +2,25 @@ package automata;
 import java.util.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.lang.reflect.Field;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
 
 public class Automata implements MouseListener, MouseMotionListener, KeyListener {
+    
+    /*
+        Merge JButton (with icon) and TooltipText Class to IconButton Class
+        and can setBackgroundColor(default null), setPressColor(or HoldColor), setEnteredColor(or CoverColor), [setReleaseColor]
+        and can setTooltipText
+        and add boolean haveTooltipText variable
+    
+        TooltipText can setBackgroundColor, setBorderColor, setForegroundColor, 
+        setFont, setSize, setPosition(bottom position case will display on top instead of below)
+    
+        Merge SwitchButton and TooltipText
+        and can setTooltipText(ActivatedText, InactivatedText)
+        and add boolean haveTooltipText variable
+    */
     
     private final JFrame frame;
     private final JPanel drawingPanel, toolbarPanel;
@@ -21,6 +36,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     private TempEdge tempEdge;
     private Object selected;
     private final TooltipText tooltipText;
+    private final Color coverColorButton = new Color(188,234,236), hoverColorButton = new Color(190,207,238);
     
     // Component in JInternalFrame (detailFrame)
     private final JLabel subLabel1, subLabel2, subLabel3;
@@ -47,16 +63,16 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 drawingPanel.requestFocusInWindow();
             }
         };
-        openButton = new JButton("Open");
-        saveButton = new JButton("Save");
-        undoButton = new JButton("Undo");
-        redoButton = new JButton("Redo");
-        clearButton = new JButton("Clear");
+        openButton = new JButton(new ImageIcon("assets/images/icons/open.png"));
+        saveButton = new JButton(new ImageIcon("assets/images/icons/save.png"));
+        undoButton = new JButton(new ImageIcon("assets/images/icons/undo.png"));
+        redoButton = new JButton(new ImageIcon("assets/images/icons/redo.png"));
+        clearButton = new JButton(new ImageIcon("assets/images/icons/delete.png"));
         themeButton = new SwitchButton();
-        createVertexButton = new JToggleButton("Create Vertex");
-        createEdgeButton = new JToggleButton("Create Edge");
-        inputAlphabetButton = new JButton("Input Set");
-        manualInputButton = new JButton("Manual Input");
+        createVertexButton = new JToggleButton(new ImageIcon("assets/images/icons/createVertex.jpg"));
+        createEdgeButton = new JToggleButton(new ImageIcon("assets/images/icons/createEdge.jpg"));
+        inputAlphabetButton = new JButton(new ImageIcon("assets/images/icons/inputAlphabet.jpg"));
+        manualInputButton = new JButton(new ImageIcon("assets/images/icons/manualInput.jpg"));
         vertexs = new ArrayList<>();
         edges = new ArrayList<>();
         inputAlphabet = new String[1];
@@ -207,6 +223,17 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             }
         });
         
+        openButton.setName("Open (Ctrl+P)");
+        saveButton.setName("Save (Ctrl+S)");
+        undoButton.setName("Undo (Ctrl+Z)");
+        redoButton.setName("Redo (Ctrl+Y)");
+        clearButton.setName("Clear (Ctrl+R)");
+        createVertexButton.setName("Create Vertex (Ctrl+F)");
+        createEdgeButton.setName("Create Edge (Ctrl+E)");
+        inputAlphabetButton.setName("Input Alphabet (Ctrl+T)");
+        manualInputButton.setName("Manual Input (Ctrl+M)");
+        themeButton.setName("Dark Theme");
+        
         toolbarPanel.setBackground(new Color(255, 255, 204));
         toolbarPanel.add(openButton);
         toolbarPanel.add(saveButton);
@@ -231,19 +258,22 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 switchButton.setActivatedColor(Color.ORANGE);
                 switchButton.setInactivatedColor(Color.BLACK);
                 switchButton.setLocation((previousComponent != null ? previousComponent.getX() + previousComponent.getWidth() : 0) + GAPS_X, GAPS_Y);
-                switchButton.setName("Dark Theme");
             }
             else {
-                c.setFont(Vertex.font);
                 c.setFocusable(false);
-                c.setSize(140, 40);
+                c.setSize(40, 40);
                 c.setLocation((previousComponent != null ? previousComponent.getX() + previousComponent.getWidth() : 0) + GAPS_X, GAPS_Y);
-                //
-                if(c instanceof JButton)
-                    c.setName(((JButton)c).getText());
-                else if(c instanceof JToggleButton)
-                    c.setName(((JToggleButton)c).getText());
-                //
+                c.setBackground(coverColorButton);
+                if(c instanceof JButton) {
+                    ((JButton)c).setFocusPainted(false);
+                    ((JButton)c).setBorder(null);
+                    ((JButton)c).setContentAreaFilled(false);
+                }
+                else if(c instanceof JToggleButton) {
+                    ((JToggleButton)c).setFocusPainted(false);
+                    ((JToggleButton)c).setBorder(null);
+                    ((JToggleButton)c).setContentAreaFilled(false);
+                }
             }
             previousComponent = c;
         }
@@ -303,6 +333,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 showErrorMaterialDialog("Error", "Can not open file '"+fd.getFile()+"'");
             }
         }
+        openButton.setContentAreaFilled(false);
     }
     
     private void saveAction(ActionEvent ae) {
@@ -319,9 +350,11 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             filePath = fd.getDirectory()+filePath;
             FileManager.saveFile(filePath, inputAlphabet, vertexs, edges);
         }
+        saveButton.setContentAreaFilled(false);
     }
     
     private void undoAction(ActionEvent ae) {
+        tooltipText.close();
         if(!stateHandle.undoIsEnabled())
             return;
         stateHandle.undo(vertexs, edges);
@@ -333,6 +366,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void redoAction(ActionEvent ae) {
+        tooltipText.close();
         if(!stateHandle.redoIsEnabled())
             return;
         stateHandle.redo(vertexs, edges);
@@ -344,6 +378,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void clearAction(ActionEvent ae) {
+        tooltipText.close();
         if(vertexs.isEmpty() && edges.isEmpty())
             return;
         edges.clear();
@@ -356,14 +391,26 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void createVertexAction(ActionEvent ae) {
-        if(createEdgeButton.isSelected())
+        tooltipText.close();
+        if(createVertexButton.isSelected()) {
+            createVertexButton.setContentAreaFilled(true);
+        }
+        if(createEdgeButton.isSelected()) {
             createEdgeButton.setSelected(false);
+            createEdgeButton.setContentAreaFilled(false);
+        }
         // Change cursor
     }
     
     private void createEdgeAction(ActionEvent ae) {
-        if(createVertexButton.isSelected())
+        tooltipText.close();
+        if(createEdgeButton.isSelected()) {
+            createEdgeButton.setContentAreaFilled(true);
+        }
+        if(createVertexButton.isSelected()) {
             createVertexButton.setSelected(false);
+            createVertexButton.setContentAreaFilled(false);
+        }
         // Change cursor
     }
     
@@ -372,6 +419,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         /*
             Manual input such as Universe character input set, initial state, accepted state set, function
         */
+//        manualInputButton.setContentAreaFilled(false);
     }
     
     private void themeAction() {
@@ -398,6 +446,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             currentInputSet += str+", ";
         currentInputSet = currentInputSet.substring(0, currentInputSet.length()-2);
         String newInputSet = JOptionPane.showInputDialog(frame.getContentPane(), "Input alphabet set", currentInputSet);
+        inputAlphabetButton.setContentAreaFilled(false);
         if(newInputSet == null)
             return;
         inputAlphabetHandle(newInputSet);
@@ -405,6 +454,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         // When delete or change input alphabet set, what happened ? => request to change name or delete ?
         
         // Can redo or undo ?
+        
     }
     
     private boolean inputAlphabetChecking(String inputSet, boolean isUniverseInputSet) {
@@ -580,7 +630,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             subField3.setVisible(selected instanceof Edge);
             
             Rectangle frameBox = new Rectangle(40, toolbarPanel.getHeight()+40, detailFrame.getWidth(), detailFrame.getHeight());
-            detailFrame.setLocation(frameBox.intersects(objectArea) ? frame.getMinimumSize().width-detailFrame.getWidth()-60 : 40, toolbarPanel.getHeight()+40);
+            detailFrame.setLocation(frameBox.intersects(objectArea) ? frame.getSize().width-detailFrame.getWidth()-60 : 40, toolbarPanel.getHeight()+40);
             detailFrame.setVisible(true);
             
             
@@ -901,18 +951,11 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     public static void main(String[] args) {
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) { }
-        EventQueue.invokeLater(() -> {
-            Automata automata = new Automata();
-            automata.setGUI();
-            automata.setLayout();
-        });
+        try {             
+            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ignored) { }
+        Automata automata = new Automata();
+        automata.setGUI();
+        automata.setLayout();
     }
 }
