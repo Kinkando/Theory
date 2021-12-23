@@ -70,10 +70,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         redoButton = new JButton(new ImageIcon("assets/images/icons/redo.png"));
         clearButton = new JButton(new ImageIcon("assets/images/icons/delete.png"));
         themeButton = new SwitchButton();
-        createVertexButton = new JToggleButton(new ImageIcon("assets/images/icons/createVertex.jpg"));
-        createEdgeButton = new JToggleButton(new ImageIcon("assets/images/icons/createEdge.jpg"));
-        inputAlphabetButton = new JButton(new ImageIcon("assets/images/icons/inputAlphabet.jpg"));
-        manualInputButton = new JButton(new ImageIcon("assets/images/icons/manualInput.jpg"));
+        createVertexButton = new JToggleButton(new ImageIcon("assets/images/icons/circle.png"));
+        createEdgeButton = new JToggleButton(new ImageIcon("assets/images/icons/line.png"));
+        inputAlphabetButton = new JButton(new ImageIcon("assets/images/icons/alphabet.png"));
+        manualInputButton = new JButton(new ImageIcon("assets/images/icons/manual.png"));
         vertexs = new ArrayList<>();
         edges = new ArrayList<>();
         inputAlphabet = new String[1];
