@@ -320,6 +320,12 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         undoButton.setEnabled(stateHandle.undoIsEnabled());
         redoButton.setEnabled(stateHandle.redoIsEnabled());
         clearButton.setEnabled(!vertexs.isEmpty() || !edges.isEmpty());
+        if(!undoButton.isEnabled()) 
+            undoButton.setContentAreaFilled(false);
+        if(!redoButton.isEnabled())
+            redoButton.setContentAreaFilled(false);
+        if(!clearButton.isEnabled())
+            clearButton.setContentAreaFilled(false);
     }
     
     private void openAction(ActionEvent ae) {
@@ -437,6 +443,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         vertexs.clear();
         stateHandle.changeHandle(vertexs, edges);
         drawingPanel.repaint();
+        clearButton.setContentAreaFilled(false);
         clearButton.setEnabled(false);
         redoButton.setEnabled(false);
         detailFrame.setVisible(false);
