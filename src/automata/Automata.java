@@ -37,7 +37,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     private TempEdge tempEdge;
     private Object selected;
     private final TooltipText tooltipText;
-    private final Color coverColorButton = new Color(188,234,236), hoverColorButton = new Color(190,207,238);
+    private final Color coverColorButton = new Color(188,234,236);
     
     // Component in JInternalFrame (detailFrame)
     private final JLabel subLabel1, subLabel2, subLabel3;
@@ -224,7 +224,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             }
         });
         
-        openButton.setName("Open (Ctrl+P)");
+        openButton.setName("Open (Ctrl+O)");
         saveButton.setName("Save (Ctrl+S)");
         undoButton.setName("Undo (Ctrl+Z)");
         redoButton.setName("Redo (Ctrl+Y)");
@@ -450,35 +450,25 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void createVertexAction(ActionEvent ae) {
+        setCursor();
         tooltipText.close();
-        if(createVertexButton.isSelected()) {
+        if(createVertexButton.isSelected()) 
             createVertexButton.setContentAreaFilled(true);
-        }
         if(createEdgeButton.isSelected()) {
             createEdgeButton.setSelected(false);
             createEdgeButton.setContentAreaFilled(false);
         }
-        // Change cursor
     }
     
     private void createEdgeAction(ActionEvent ae) {
+        setCursor();
         tooltipText.close();
-        if(createEdgeButton.isSelected()) {
+        if(createEdgeButton.isSelected()) 
             createEdgeButton.setContentAreaFilled(true);
-        }
         if(createVertexButton.isSelected()) {
             createVertexButton.setSelected(false);
             createVertexButton.setContentAreaFilled(false);
         }
-        // Change cursor
-    }
-    
-    private void manualInputAction(ActionEvent ae) {
-        tooltipText.close();
-        /*
-            Manual input such as Universe character input set, initial state, accepted state set, function
-        */
-//        manualInputButton.setContentAreaFilled(false);
     }
     
     private void themeAction() {
@@ -496,6 +486,16 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         subSwitch3.setBackground(Vertex.backgroundColor);
         
         drawingPanel.setBackground(Vertex.backgroundColor);
+    }
+    
+    private void manualInputAction(ActionEvent ae) {
+        tooltipText.close();
+        
+        showErrorMaterialDialog("???", "????");
+        /*
+            Manual input such as Universe character input set, initial state, accepted state set, function
+        */
+        manualInputButton.setContentAreaFilled(false);
     }
     
     private void inputAlphabetAction(ActionEvent ae) {
@@ -902,7 +902,6 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
 
     @Override
     public void mouseReleased(MouseEvent me) {
-        frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
         stateHandle.changeHandle(vertexs, edges);
         setEnabledButton();
     }
@@ -958,7 +957,6 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                     Edge e = (Edge) selected;
                     e.setXCharacter(x);
                     e.setYCharacter(y+10);
-                    frame.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 }
             }
             
@@ -1015,21 +1013,23 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         else if(key == 25 && redoButton.isEnabled())    //ctrl + y
             redoAction(null);
         else if(key == 26 && undoButton.isEnabled())    //ctrl + z
-            undoAction(null);   
+            undoAction(null);  
         else if(key == 5) {
+            createEdgeButton.setSelected(!createEdgeButton.isSelected());
+            createEdgeAction(null);
+            if(!createEdgeButton.isSelected()) 
+                createEdgeButton.setContentAreaFilled(false);
+        } 
+        else if(key == 6) {
             createVertexButton.setSelected(!createVertexButton.isSelected());
             createVertexAction(null);
             if(!createVertexButton.isSelected()) 
                 createVertexButton.setContentAreaFilled(false);
         }
-        else if(key == 6) {
-            createEdgeButton.setSelected(!createEdgeButton.isSelected());
-            createEdgeAction(null);
-            if(!createEdgeButton.isSelected()) 
-                createEdgeButton.setContentAreaFilled(false);
-        }
-        else if(key == 10)
+        else if(key == 10) {
+            manualInputButton.setContentAreaFilled(true);
             manualInputAction(null);
+        }
         else if(key == 20) {
             inputAlphabetButton.setContentAreaFilled(true);
             inputAlphabetAction(null);
@@ -1037,6 +1037,15 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         else if(key == 127) {
             remove();
             drawingPanel.repaint();
+        }
+        else if(key == 27) { // ESC 
+            if(createVertexButton.isSelected()) 
+                createVertexButton.setContentAreaFilled(false);
+            if(createEdgeButton.isSelected()) 
+                createEdgeButton.setContentAreaFilled(false);
+            createVertexButton.setSelected(false);
+            createEdgeButton.setSelected(false);
+            setCursor();
         }
     }
 
@@ -1048,6 +1057,13 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     @Override
     public void keyReleased(KeyEvent ke) {
         
+    }
+    
+    private void setCursor() {
+        if(createVertexButton.isSelected() || createEdgeButton.isSelected())
+            frame.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+        else
+            frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
     }
     
     public static void main(String[] args) {
