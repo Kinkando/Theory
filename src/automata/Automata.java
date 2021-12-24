@@ -923,6 +923,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     //MouseMotionListener
     @Override
     public void mouseDragged(MouseEvent me) {
+        /*
+            when drag selected object that current mouse position is not inCircle or inLine,
+            it must not movement
+        */
         final int x = me.getX();
         final int y = me.getY();
         if(cornerPosition(x, y))
