@@ -1013,7 +1013,6 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             selected = null;
         } 
         else if (selected instanceof Edge) {
-            Edge t = (Edge) selected;
             edges.remove((Edge)selected);
             selected = null;
         }
