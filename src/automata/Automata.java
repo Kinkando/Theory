@@ -352,8 +352,12 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             inputAlphabet = backup.inputAlphabetBackup;
             vertexs = backup.vertexsBackup;
             edges = backup.edgesBackup;
-            for(Vertex v : vertexs) 
+            vertexs.forEach((v) -> { 
                 v.setSelected(false);
+            });
+            edges.forEach((e) -> {
+                e.setSelected(false);
+            });
             for (Edge e : edges) {
                 e.setSelected(false);
                 if (e.getInputState() != null) {
@@ -945,7 +949,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 s.setX(x);
                 s.setY(y);
             } 
-            else {
+            else if(selected instanceof Edge) {
                 if(SwingUtilities.isLeftMouseButton(me)) {
                     Edge e = (Edge) selected;
                     e.setXCenter(x);
