@@ -995,13 +995,27 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 Object obj = selected.get(i);
                 int contextX = this.contextsX.get(i);
                 int contextY = this.contextsY.get(i);
+                final int currentX = contextX+x;
+                final int currentY = contextY+y;
                 if(obj instanceof Vertex && SwingUtilities.isLeftMouseButton(me)) {
                     Vertex v = (Vertex) obj;
                     ///////////////////////////////////////////
+                    
+//                    if selected both of Vertex and Edge, or Vertex only
+//                    and have some edges that have source and target both in selected item
+//                    then change xCenter and yCenter, too
+//
+//                    if select both of Vertex and Edge, or only Vertex
+//                    and then have one vertex in one side of edge is select, and one is not select
+//                    then change xCenter, yCenter on that edge, too
+//
+//                    bug with xCenter, yCenter of loop edge, too
+//
+                    ///////////////////////////////////////////
                     for (Edge e : edges) {
                         if (e.getInputState() == v || e.getOutputState() == v) {
-                            int difx = x - v.getX();
-                            int dify = y - v.getY();
+                            int difx = currentX - v.getX();
+                            int dify = currentY - v.getY();
                             int xCenter = (e.getInputState().getX() + e.getOutputState().getX()) / 2;
                             int yCenter = (e.getInputState().getY() + e.getOutputState().getY()) / 2;
                             if (e.getInputState() == e.getOutputState()) {
@@ -1015,8 +1029,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                         }
                     }
                     ///////////////////////////////////////////
-                    v.setX(contextX+x);
-                    v.setY(contextY+y);
+                    v.setX(currentX);
+                    v.setY(currentY);
 //                    if(!onlyEdge) {
 //                        for(Edge e : edges) {
 //                            boolean isAdjacency = false;
@@ -1044,11 +1058,11 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 }
                 else if(obj instanceof Edge && onlyEdge) {
                     Edge e = (Edge) obj;
-                    e.setXCharacter(contextX+x);
-                    e.setYCharacter(contextY+y);
+                    e.setXCharacter(currentX);
+                    e.setYCharacter(currentY);
                     if(SwingUtilities.isLeftMouseButton(me)) {
-                        e.setXCenter(contextX+x);
-                        e.setYCenter(contextY+y);
+                        e.setXCenter(currentX);
+                        e.setYCenter(currentY);
                     }
                 }
             }
