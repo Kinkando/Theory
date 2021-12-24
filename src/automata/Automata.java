@@ -1200,6 +1200,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         }
         else if(key == 127) {
             remove();
+            tempEdge = null;
             detailFrame.setVisible(false);
             drawingPanel.repaint();
         }
