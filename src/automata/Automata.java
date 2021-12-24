@@ -1104,6 +1104,13 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         // When multiple selected, then close detail frame
         // When multiple selected and moved, then move all selected object
         // except edges that xCenter and yCenter must not change
+        
+        // When multiple select, then display merge selected item
+        // such as multiple only vertex, then can change accept state and
+        // disable state name and initialize state changing
+        // In the same way, multiple only edge, then can change input alphabet
+        // but considered data accuracy (must be correct only)
+        // When multiple both of them, then close the detail frame
     }
 
     @Override
