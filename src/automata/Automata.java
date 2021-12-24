@@ -890,6 +890,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             }
             else {
                 selected(x, y);
+                if(selected != null)
+                    frame.setCursor(new Cursor(Cursor.MOVE_CURSOR));
                 return;
             }
         }
@@ -1066,6 +1068,19 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             drawingPanel.repaint();
         }
         else if(key == 27) { // ESC 
+            if(!createVertexButton.isSelected() && !createEdgeButton.isSelected() && detailFrame.isVisible()) {
+                detailFrame.setVisible(false);
+                return;
+            }
+            else if(!createVertexButton.isSelected() && !createEdgeButton.isSelected() && !detailFrame.isVisible() && selected != null) {
+                if(selected instanceof Vertex)
+                    ((Vertex)selected).setSelected(false);
+                else if(selected instanceof Vertex)
+                    ((Edge)selected).setSelected(false);
+                selected = null;
+                drawingPanel.repaint();
+                return;
+            }
             if(createVertexButton.isSelected()) 
                 createVertexButton.setContentAreaFilled(false);
             if(createEdgeButton.isSelected()) 
