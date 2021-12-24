@@ -965,8 +965,11 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
 
     @Override
     public void mouseReleased(MouseEvent me) {
+        final int x = me.getX();
+        final int y = me.getY();
         stateHandle.changeHandle(vertexs, edges);
         setEnabledButton();
+        mouseMovedCursor(x, y);
     }
 
     @Override
@@ -986,6 +989,13 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         final int y = me.getY();
         if(cornerPosition(x, y))
             return;
+        if(createEdgeButton.isSelected() && tempEdge != null) {
+            tempEdge.x = x;
+            tempEdge.y = y;
+            drawingPanel.repaint();
+            return;
+        }
+        frame.setCursor(new Cursor(!selected.isEmpty() ? Cursor.MOVE_CURSOR : Cursor.DEFAULT_CURSOR));
         if (!selected.isEmpty() && !contextsX.isEmpty() && !contextsY.isEmpty() && !createVertexButton.isSelected() && !createEdgeButton.isSelected()) {
             boolean onlyEdge = true;
             for(int i=0; i<selected.size() && onlyEdge; i++) {
@@ -1106,7 +1116,6 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             
             drawingPanel.repaint();
         }
-        mouseMovedCursor(x, y);
     }
 
     @Override
