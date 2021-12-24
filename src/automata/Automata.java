@@ -999,6 +999,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void remove() {
+        if (selected == null)
+            return;
         if (selected instanceof Vertex) {
             ArrayList<Edge> adjacencyEdge = new ArrayList<>();
             for (Edge t : edges)
@@ -1015,6 +1017,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             edges.remove((Edge)selected);
             selected = null;
         }
+        detailFrame.setVisible(false);
     }
     
     //KeyListener
