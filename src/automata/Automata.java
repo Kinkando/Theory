@@ -22,6 +22,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             this.edgesBackup = edges;
         }
     }
+    private final ArrayList<Integer> contextsX = new ArrayList<>();
+    private final ArrayList<Integer> contextsY = new ArrayList<>();
     
     private final JFrame frame;
     private final JPanel drawingPanel, toolbarPanel;
@@ -34,8 +36,9 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     public ArrayList<Vertex> vertexs;
     public ArrayList<Edge> edges;
     public String[] inputAlphabet;
+    private String mode = "default"; // default, multiple, create
     private TempEdge tempEdge;
-    private Object selected;
+    private ArrayList<Object> selected;
     private final TooltipText tooltipText;
     private final Color coverColorButton = new Color(188,234,236);
     
@@ -76,6 +79,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         manualInputButton = new JButton(new ImageIcon("assets/images/icons/manual.png"));
         vertexs = new ArrayList<>();
         edges = new ArrayList<>();
+        selected = new ArrayList<>();
         inputAlphabet = new String[1];
         inputAlphabet[0] = "a";
         stateHandle = new StateHandle();
@@ -424,7 +428,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         setEnabledButton();
         stateHandle.changeHandle(vertexs, edges);
         detailFrame.setVisible(false);
-        selected = null;
+        selected.clear();
     }
     
     private void redoAction(ActionEvent ae) {
@@ -436,7 +440,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         setEnabledButton();
         stateHandle.changeHandle(vertexs, edges);
         detailFrame.setVisible(false);
-        selected = null;
+        selected.clear();
     }
     
     private void clearAction(ActionEvent ae) {
@@ -580,9 +584,9 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void changeStateName(String newStateName) {
-        if(selected == null || !(selected instanceof Vertex))
+        if(selected.isEmpty() || selected.size()>1 || !(selected.get(0) instanceof Vertex))
             return;
-        Vertex v = (Vertex) selected;
+        Vertex v = (Vertex) selected.get(0);
         String currentStateName = v.getName();
         if(currentStateName.equals(newStateName))
             return;
@@ -600,9 +604,9 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void changeInputCharacter(String newInputCharacter) {
-        if(selected == null || !(selected instanceof Edge))
+        if(selected.isEmpty() || selected.size()>1 || !(selected.get(0) instanceof Edge))
             return;
-        Edge e = (Edge) selected;
+        Edge e = (Edge) selected.get(0);
         String currentInputCharacter = e.getString();
         if(currentInputCharacter.equals(newInputCharacter))
             return;
@@ -633,9 +637,9 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void initialStateSwitch() {
-        if(selected == null || !(selected instanceof Vertex))
+        if(selected.isEmpty() || selected.size()>1 || !(selected.get(0) instanceof Vertex))
             return;
-        Vertex v = (Vertex) selected;
+        Vertex v = (Vertex) selected.get(0);
         v.setInitialState(!v.isInitialState());
         for(Vertex vertex : vertexs) {
             if(vertex != v)
@@ -647,9 +651,9 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void acceptedStateSwitch() {
-        if(selected == null || !(selected instanceof Vertex))
+        if(selected.isEmpty() || selected.size()>1 || !(selected.get(0) instanceof Vertex))
             return;
-        Vertex v = (Vertex) selected;
+        Vertex v = (Vertex) selected.get(0);
         v.setAcceptedState(!v.isAcceptedState());
         drawingPanel.repaint();
         stateHandle.changeHandle(vertexs, edges);
@@ -657,10 +661,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void displayDetailFrame() {
-        if(selected != null) {
+        if(selected.size() == 1) {
             Rectangle objectArea = new Rectangle();
-            if (selected instanceof Vertex) {
-                Vertex v = (Vertex) selected;
+            if (selected.get(0) instanceof Vertex) {
+                Vertex v = (Vertex) selected.get(0);
                 detailFrame.setTitle("Vertex detail");
                 subLabel1.setText("State");
                 subLabel2.setText("Initial State");
@@ -671,7 +675,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 objectArea.setBounds(v.getX()-Vertex.r, v.getY()-Vertex.r, Vertex.r*2, Vertex.r*2);
             } 
             else {
-                Edge e = (Edge) selected;
+                Edge e = (Edge) selected.get(0);
                 detailFrame.setTitle("Edge detail");
                 subLabel1.setText("Input State");
                 subLabel2.setText("Input Character");
@@ -685,12 +689,17 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 subField3.setText(e.getOutputState().getName());
                 subField3.setEditable(false);
                 objectArea.setFrameFromDiagonal(e.getInputState().getX(), e.getInputState().getY(), e.getOutputState().getX(), e.getOutputState().getY());
+                
+                /*
+                    if create or select Loop Edge, then must be change size and position of objectArea Rectangle
+                    detailFrame overlap with loop edge
+                */
             }
-            subField1.setEditable(selected instanceof Vertex);
-            subSwitch2.setVisible(selected instanceof Vertex);
-            subSwitch3.setVisible(selected instanceof Vertex);
-            subField2.setVisible(selected instanceof Edge);
-            subField3.setVisible(selected instanceof Edge);
+            subField1.setEditable(selected.get(0) instanceof Vertex);
+            subSwitch2.setVisible(selected.get(0) instanceof Vertex);
+            subSwitch3.setVisible(selected.get(0) instanceof Vertex);
+            subField2.setVisible(selected.get(0) instanceof Edge);
+            subField3.setVisible(selected.get(0) instanceof Edge);
             
             Rectangle frameBox = new Rectangle(40, toolbarPanel.getHeight()+40, detailFrame.getWidth(), detailFrame.getHeight());
             detailFrame.setLocation(frameBox.intersects(objectArea) ? frame.getSize().width-detailFrame.getWidth()-60 : 40, toolbarPanel.getHeight()+40);
@@ -708,7 +717,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     public void selected(int x, int y) {
-        deselected();
+        if(mode.equals("default"))
+            deselected();
         Object tempSelected = null;
         for(Vertex v : vertexs) {
             if(v.isInCircle(x, y)) {
@@ -726,18 +736,36 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 }
             }
         }
-        // Cancel current highlight object
-        if(selected != null && selected != tempSelected) {
-            if (selected instanceof Vertex) {
-                Vertex v = (Vertex) selected;
-                v.setSelected(false);
-            } 
-            else {
-                Edge e = (Edge) selected;
-                e.setSelected(false);
+        if(tempSelected == null) 
+            deselected();
+        else if(mode.equals("multiple")) {
+            boolean isInSelectedList = false;
+            for(Object obj : selected) {
+                if(obj == tempSelected) {
+                    isInSelectedList = true;
+                    break;
+                }
             }
+            if(isInSelectedList) {
+                if(tempSelected instanceof Vertex) 
+                    ((Vertex) tempSelected).setSelected(false);
+                else if(tempSelected instanceof Edge) 
+                    ((Edge) tempSelected).setSelected(false);
+            }
+            else
+                selected.add(tempSelected);
         }
-        selected = tempSelected;
+        else {
+            for(Object obj : selected) {
+                if(obj != tempSelected) {
+                    if (obj instanceof Vertex)
+                        ((Vertex) obj).setSelected(false);
+                    else 
+                        ((Edge) obj).setSelected(false);
+                }
+            }
+            selected.add(tempSelected);
+        }
         displayDetailFrame();
         drawingPanel.repaint();
     }
@@ -749,6 +777,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         edges.forEach((e) -> {
             e.setSelected(false);
         });
+        selected.clear();
     }
     
     private void createVertex(int x, int y) {
@@ -792,7 +821,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             
             deselected();
             vertex.setSelected(true);
-            selected = vertex;
+            selected.add(vertex);
             displayDetailFrame();
             
             vertexs.add(vertex);
@@ -853,7 +882,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                     
                     deselected();
                     edge.setSelected(true);
-                    selected = edge;
+                    selected.add(edge);
                     displayDetailFrame();
 
                     edges.add(edge);
@@ -877,7 +906,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         if(cornerPosition(x, y))
             return;
         if(SwingUtilities.isRightMouseButton(me)) { // Cancel drawing
-            selected = null;
+            deselected();
             tempEdge = null;
             drawingPanel.repaint();
         }
@@ -890,20 +919,48 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             }
             else {
                 selected(x, y);
-                if(selected != null)
+                if(!selected.isEmpty())
                     frame.setCursor(new Cursor(Cursor.MOVE_CURSOR));
                 return;
             }
         }
         stateHandle.changeHandle(vertexs, edges);
         setEnabledButton();
-        
-        // Multiply item selected ?
     }
 
     @Override
     public void mousePressed(MouseEvent me) {
-        
+        final int x = me.getX();
+        final int y = me.getY();
+        contextsX.clear();
+        contextsY.clear();
+        if(!selected.isEmpty()) {
+            boolean inSelected = false;
+            for(int i=0; i<selected.size() && !inSelected; i++) {
+                Object obj = selected.get(i);
+                if(obj instanceof Vertex) 
+                    inSelected = ((Vertex)obj).isInCircle(x, y);
+                else if(obj instanceof Edge) 
+                    inSelected = ((Edge)obj).isInLine(x, y);
+            }
+            if(!inSelected) {
+                contextsX.clear();
+                contextsY.clear();
+                return;
+            }
+            selected.forEach((obj) -> {
+                if(obj instanceof Vertex) {
+                    Vertex v = (Vertex) obj;
+                    contextsX.add(v.getX()-x);
+                    contextsY.add(v.getY()-y);
+                }
+                else if(obj instanceof Edge) {
+                    Edge e = (Edge) obj;
+                    contextsX.add(e.getXCenter()-x);
+                    contextsY.add(e.getYCenter()-y);
+                }
+            });
+        }
     }
 
     @Override
@@ -925,50 +982,111 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     //MouseMotionListener
     @Override
     public void mouseDragged(MouseEvent me) {
-        /*
-            when drag selected object that current mouse position is not inCircle or inLine,
-            it must not movement
-        */
         final int x = me.getX();
         final int y = me.getY();
         if(cornerPosition(x, y))
             return;
-        if (selected != null && !createVertexButton.isSelected() && !createEdgeButton.isSelected()) {
-            if (selected instanceof Vertex && SwingUtilities.isLeftMouseButton(me)) {
-                Vertex s = (Vertex) selected;
-                for (Edge e : edges) {
-                    if (e.getInputState() == s || e.getOutputState() == s) {
-                        int difx = x - s.getX();
-                        int dify = y - s.getY();
-                        int xCenter = (e.getInputState().getX() + e.getOutputState().getX()) / 2;
-                        int yCenter = (e.getInputState().getY() + e.getOutputState().getY()) / 2;
-                        if (e.getInputState() == e.getOutputState()) {
-                            xCenter = e.getXCenter() + difx;
-                            yCenter = e.getYCenter() + dify;
+        if (!selected.isEmpty() && !contextsX.isEmpty() && !contextsY.isEmpty() && !createVertexButton.isSelected() && !createEdgeButton.isSelected()) {
+            boolean onlyEdge = true;
+            for(int i=0; i<selected.size() && onlyEdge; i++) {
+                onlyEdge = selected.get(i) instanceof Edge;
+            }
+            for(int i=0; i<selected.size(); i++) {
+                Object obj = selected.get(i);
+                int contextX = this.contextsX.get(i);
+                int contextY = this.contextsY.get(i);
+                if(obj instanceof Vertex && SwingUtilities.isLeftMouseButton(me)) {
+                    Vertex v = (Vertex) obj;
+                    ///////////////////////////////////////////
+                    for (Edge e : edges) {
+                        if (e.getInputState() == v || e.getOutputState() == v) {
+                            int difx = x - v.getX();
+                            int dify = y - v.getY();
+                            int xCenter = (e.getInputState().getX() + e.getOutputState().getX()) / 2;
+                            int yCenter = (e.getInputState().getY() + e.getOutputState().getY()) / 2;
+                            if (e.getInputState() == e.getOutputState()) {
+                                xCenter = e.getXCenter() + difx;
+                                yCenter = e.getYCenter() + dify;
+                            }
+                            e.setXCenter(xCenter);
+                            e.setYCenter(yCenter);
+                            e.setXCharacter(xCenter);
+                            e.setYCharacter(yCenter);
                         }
-                        e.setXCenter(xCenter);
-                        e.setYCenter(yCenter);
-                        e.setXCharacter(xCenter);
-                        e.setYCharacter(yCenter);
+                    }
+                    ///////////////////////////////////////////
+                    v.setX(contextX+x);
+                    v.setY(contextY+y);
+//                    if(!onlyEdge) {
+//                        for(Edge e : edges) {
+//                            boolean isAdjacency = false;
+//                            Vertex v1 = e.getInputState();
+//                            Vertex v2 = e.getOutputState();
+//                            for(Object object : selected) {
+//                                if(object instanceof Edge)
+//                                    continue;
+//                                Vertex vertex = (Vertex) object;
+//                                if(v1 == vertex || v2 == vertex) {
+//                                    isAdjacency = true;
+//                                    break;
+//                                }
+//                            }
+//                            if(isAdjacency) {
+//                                /*
+//                                e.setXCenter(contextX+e.getXCenter());
+//                                e.setYCenter(contextY+e.getYCenter());
+//                                e.setXCharacter(contextX+e.getXCenter());
+//                                e.setYCharacter(contextY+e.getYCenter());
+//                                */
+//                            }
+//                        }
+//                    }
+                }
+                else if(obj instanceof Edge && onlyEdge) {
+                    Edge e = (Edge) obj;
+                    e.setXCharacter(contextX+x);
+                    e.setYCharacter(contextY+y);
+                    if(SwingUtilities.isLeftMouseButton(me)) {
+                        e.setXCenter(contextX+x);
+                        e.setYCenter(contextY+y);
                     }
                 }
-                s.setX(x);
-                s.setY(y);
-            } 
-            else if(selected instanceof Edge) {
-                if(SwingUtilities.isLeftMouseButton(me)) {
-                    Edge e = (Edge) selected;
-                    e.setXCenter(x);
-                    e.setYCenter(y);
-                    e.setXCharacter(x);
-                    e.setYCharacter(y);
-                }
-                else if(SwingUtilities.isRightMouseButton(me)) {
-                    Edge e = (Edge) selected;
-                    e.setXCharacter(x);
-                    e.setYCharacter(y+10);
-                }
             }
+//            if (selected instanceof Vertex && SwingUtilities.isLeftMouseButton(me)) {
+//                Vertex s = (Vertex) selected;
+//                for (Edge e : edges) {
+//                    if (e.getInputState() == s || e.getOutputState() == s) {
+//                        int difx = x - s.getX();
+//                        int dify = y - s.getY();
+//                        int xCenter = (e.getInputState().getX() + e.getOutputState().getX()) / 2;
+//                        int yCenter = (e.getInputState().getY() + e.getOutputState().getY()) / 2;
+//                        if (e.getInputState() == e.getOutputState()) {
+//                            xCenter = e.getXCenter() + difx;
+//                            yCenter = e.getYCenter() + dify;
+//                        }
+//                        e.setXCenter(xCenter);
+//                        e.setYCenter(yCenter);
+//                        e.setXCharacter(xCenter);
+//                        e.setYCharacter(yCenter);
+//                    }
+//                }
+//                s.setX(contextsX+x);
+//                s.setY(contextsY+y);
+//            } 
+//            else if(selected instanceof Edge) {
+//                if(SwingUtilities.isLeftMouseButton(me)) {
+//                    Edge e = (Edge) selected;
+//                    e.setXCenter(x);
+//                    e.setYCenter(y);
+//                    e.setXCharacter(x);
+//                    e.setYCharacter(y);
+//                }
+//                else if(SwingUtilities.isRightMouseButton(me)) {
+//                    Edge e = (Edge) selected;
+//                    e.setXCharacter(x);
+//                    e.setYCharacter(y+10);
+//                }
+//            }
             
             // Check collision of Vertex and Edge
             
@@ -990,38 +1108,38 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     public void mouseMovedCursor(final int x, final int y) {
-        if(selected != null && !createVertexButton.isSelected() && !createEdgeButton.isSelected()) {
+        if(!selected.isEmpty() && !createVertexButton.isSelected() && !createEdgeButton.isSelected()) {
             boolean isPointer = false;
-            if(selected instanceof Vertex) {
-                Vertex v = (Vertex)selected;
-                isPointer = v.isInCircle(x, y);
-            }
-            else if(selected instanceof Edge) {
-                Edge e = (Edge)selected;
-                isPointer = e.isInLine(x, y);
+            for(int i=0; i<selected.size() && !isPointer; i++){
+                Object obj = selected.get(i);
+                if(obj instanceof Vertex) 
+                    isPointer = ((Vertex) obj).isInCircle(x, y);
+                else 
+                    isPointer = ((Edge) obj).isInLine(x, y);
             }
             frame.setCursor(new Cursor(isPointer ? Cursor.MOVE_CURSOR : Cursor.DEFAULT_CURSOR));
         }
     }
     
     private void remove() {
-        if (selected == null)
+        if (selected.isEmpty())
             return;
-        if (selected instanceof Vertex) {
-            ArrayList<Edge> adjacencyEdge = new ArrayList<>();
-            for (Edge t : edges)
-                if (t.getInputState() == selected || t.getOutputState() == selected) 
-                    adjacencyEdge.add(t);
-            adjacencyEdge.forEach((t) -> { 
-                edges.remove(t);
-            });
-            vertexs.remove((Vertex)selected);
-            selected = null;
-        } 
-        else if (selected instanceof Edge) {
-            edges.remove((Edge)selected);
-            selected = null;
+        for(Object obj : selected) {
+            if(obj instanceof Vertex) {
+                ArrayList<Edge> adjacencyEdge = new ArrayList<>();
+                for (Edge t : edges)
+                    if (t.getInputState() == obj || t.getOutputState() == obj) 
+                        adjacencyEdge.add(t);
+                adjacencyEdge.forEach((t) -> { 
+                    edges.remove(t);
+                });
+                vertexs.remove((Vertex)obj);
+            }
+            else if(obj instanceof Edge) {
+                edges.remove((Edge)obj);
+            }
         }
+        selected.clear();
     }
     
     //KeyListener
@@ -1072,31 +1190,29 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             drawingPanel.repaint();
         }
         else if(key == 27) { // ESC 
-            if(!createVertexButton.isSelected() && !createEdgeButton.isSelected() && detailFrame.isVisible()) {
-                detailFrame.setVisible(false);
-                return;
+            if(!detailFrame.isVisible() && (createVertexButton.isSelected() | createEdgeButton.isSelected())) {
+                if(createVertexButton.isSelected()) 
+                    createVertexButton.setContentAreaFilled(false);
+                if(createEdgeButton.isSelected()) 
+                    createEdgeButton.setContentAreaFilled(false);
+                createVertexButton.setSelected(false);
+                createEdgeButton.setSelected(false);
+                tempEdge = null;
+                setCursor();
             }
-            else if(!createVertexButton.isSelected() && !createEdgeButton.isSelected() && !detailFrame.isVisible() && selected != null) {
-                if(selected instanceof Vertex)
-                    ((Vertex)selected).setSelected(false);
-                else if(selected instanceof Vertex)
-                    ((Edge)selected).setSelected(false);
-                selected = null;
-                drawingPanel.repaint();
-                return;
+            else if(!createVertexButton.isSelected() && !createEdgeButton.isSelected() && !detailFrame.isVisible() && !selected.isEmpty()) {
+                deselected();
             }
-            if(createVertexButton.isSelected()) 
-                createVertexButton.setContentAreaFilled(false);
-            if(createEdgeButton.isSelected()) 
-                createEdgeButton.setContentAreaFilled(false);
-            createVertexButton.setSelected(false);
-            createEdgeButton.setSelected(false);
-            setCursor();
+            detailFrame.setVisible(false);
+            drawingPanel.repaint();
         }
     }
 
     @Override
     public void keyPressed(KeyEvent ke) {
+        int key = (int) ke.getKeyCode();
+        if(key == 17)
+            mode = "multiple";
         // Add String mode = "Move" : "Multiple" : "Crop" mode;
         // Press Ctrl + left click to multiple selected object
         // Press Alt + left click to crop multiple object
@@ -1111,11 +1227,15 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         // In the same way, multiple only edge, then can change input alphabet
         // but considered data accuracy (must be correct only)
         // When multiple both of them, then close the detail frame
+        
+        // ***** Can multiple only edge move *****
+        // ***** Can multiple only vertex move *****
+        // ***** Multiple both, move x, y on vertex and move only xCenter, yCenter on edge *****
     }
 
     @Override
     public void keyReleased(KeyEvent ke) {
-        
+        mode = "default";
     }
     
     private void setCursor() {
