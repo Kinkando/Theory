@@ -1027,6 +1027,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     //KeyListener
     @Override
     public void keyTyped(KeyEvent ke) {
+        /*
+            When ctrl+f or e in order to cancel create mode 
+            and remain point at selected object, then must be change cursor to Cursor.MOVE
+        */
         int key = (int) ke.getKeyChar();
         if (key == 18 && clearButton.isEnabled())       // ctrl + r
             clearAction(null);
