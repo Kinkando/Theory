@@ -1016,7 +1016,6 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             edges.remove((Edge)selected);
             selected = null;
         }
-        detailFrame.setVisible(false);
     }
     
     //KeyListener
@@ -1059,6 +1058,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         }
         else if(key == 127) {
             remove();
+            detailFrame.setVisible(false);
             drawingPanel.repaint();
         }
         else if(key == 27) { // ESC 
@@ -1074,7 +1074,13 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
 
     @Override
     public void keyPressed(KeyEvent ke) {
-        
+        // Add String mode = "Move" : "Multiple" : "Crop" mode;
+        // Press Ctrl + left click to multiple selected object
+        // Press Alt + left click to crop multiple object
+        // Change selected to ArrayList<Object>
+        // When multiple selected, then close detail frame
+        // When multiple selected and moved, then move all selected object
+        // except edges that xCenter and yCenter must not change
     }
 
     @Override
