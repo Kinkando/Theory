@@ -1,6 +1,8 @@
 package automata;
 
 import java.awt.*;
+import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.QuadCurve2D;
 
 public class Edge {
@@ -111,7 +113,9 @@ public class Edge {
     public Rectangle getShape() {
         Rectangle area = new Rectangle();
         if(inputState != outputState) {
-            area.setBounds(new QuadCurve2D.Float(inputState.getX(), inputState.getY(), xCenter, yCenter, outputState.getX(), outputState.getY()).getBounds());
+            Point.Double start = getPoint("start");
+            Point.Double end = getPoint("end");
+            area.setBounds(new QuadCurve2D.Double(start.x, start.y, xCenter, yCenter, end.x, end.y).getBounds());
         }
         else{
             double angle = Math.atan2(yCenter - inputState.getY(), xCenter - inputState.getX());
@@ -136,16 +140,52 @@ public class Edge {
                area.y+area.getHeight() <= selectArea.y+selectArea.getHeight();
     }
     
+    public Point.Double getPoint(String side) {
+        // diff between inputState and outputState
+        double d = Math.sqrt(Math.pow(outputState.getX()-inputState.getX(), 2) + Math.pow(outputState.getY()-inputState.getY(), 2));
+        double d2 = d - Vertex.r;
+        double ratio = d2/d;
+        double dx = (outputState.getX()-inputState.getX()) * ratio;
+        double dy = (outputState.getY()-inputState.getY()) * ratio;
+        if(side.equalsIgnoreCase("start"))
+            return new Point.Double(outputState.getX()-dx, outputState.getY()-dy);
+        return new Point.Double(inputState.getX()+dx, inputState.getY()+dy);
+    }
+    
     public void draw(Graphics2D g) {
         g.setFont(Vertex.font);
         g.setColor(selected ? Vertex.highlightColor : Vertex.foregroundColor);
         g.setStroke(new BasicStroke(stroke));
+        
+        final Point.Double start = getPoint("start");
+        final Point.Double end = getPoint("end");
+//        final Point.Double start = new Point.Double(inputState.getX(), inputState.getY());
+//        final Point.Double end = new Point.Double(outputState.getX(), outputState.getY());
+        
+        //triangle of arrow
+        double angle = Math.atan2((end.y - yCenter), (end.x - xCenter)) - Math.PI / 2.0;
+        double sin = Math.sin(angle);
+        double cos = Math.cos(angle);
+
+        //point1 of arrow
+        double x1 = (- 1.0 / 2.0 * cos + Math.sqrt(3) / 2 * sin) * ARROW_HEAD_SIZE + end.x;
+        double y1 = (- 1.0 / 2.0 * sin - Math.sqrt(3) / 2 * cos) * ARROW_HEAD_SIZE + end.y;
+        //point2 of arrow
+        double x2 = (1.0 / 2.0 * cos + Math.sqrt(3) / 2 * sin) * ARROW_HEAD_SIZE + end.x;
+        double y2 = (1.0 / 2.0 * sin - Math.sqrt(3) / 2 * cos) * ARROW_HEAD_SIZE + end.y;
+        
+        Path2D path = new Path2D.Double();
+        path.moveTo(end.x, end.y);
+        path.lineTo(x1, y1);
+        path.lineTo(x2, y2);
+        path.closePath();
+        g.fill(path);
+        
         if(inputState != outputState) {
-            // Change loop edge
-            g.draw(new QuadCurve2D.Float(inputState.getX(), inputState.getY(), xCenter, yCenter, outputState.getX(), outputState.getY()));
+            g.draw(new QuadCurve2D.Double(start.x, start.y, xCenter, yCenter, end.x, end.y));
         }
         else{
-            double angle = Math.atan2(yCenter - inputState.getY(), xCenter - inputState.getX());
+            angle = Math.atan2(yCenter - inputState.getY(), xCenter - inputState.getX());
             double dx = Math.cos(angle);
             double dy = Math.sin(angle);
             int rc = (int)(Vertex.r * Math.sqrt(2));
@@ -153,29 +193,6 @@ public class Edge {
             int yloop = inputState.getY() - Vertex.r + (int)(dy*rc);
             g.drawArc(xloop, yloop, Vertex.r*2, Vertex.r*2, 0, 360); 
         }
-        
-        // Change line not into vertex area
-        
-        //ArrowHead: change from inputState.point to pointCenter
-        double angle = Math.atan2((outputState.getY() - yCenter), (outputState.getX() - xCenter)) - Math.PI / 2.0;
-        double sin = Math.sin(angle);
-        double cos = Math.cos(angle);
-        //point1
-        double x1 = (- 1.0 / 2.0 * cos + Math.sqrt(3) / 2 * sin) * ARROW_HEAD_SIZE + outputState.getX();
-        double y1 = (- 1.0 / 2.0 * sin - Math.sqrt(3) / 2 * cos) * ARROW_HEAD_SIZE + outputState.getY();
-        //point2
-        double x2 = (1.0 / 2.0 * cos + Math.sqrt(3) / 2 * sin) * ARROW_HEAD_SIZE + outputState.getX();
-        double y2 = (1.0 / 2.0 * sin - Math.sqrt(3) / 2 * cos) * ARROW_HEAD_SIZE + outputState.getY();
-        
-//        System.out.println("x: Source: "+inputState.getX()+", Target: "+outputState.getX()+", Center: "+xCenter);
-//        System.out.println("y: Source: "+inputState.getY()+", Target: "+outputState.getY()+", Center: "+yCenter);
-//        System.out.println("x: "+x1+", "+x2+", "+outputState.getX());
-//        System.out.println("y: "+y1+", "+y2+", "+outputState.getY());
-        Polygon triangle = new Polygon();
-        triangle.addPoint((int)x1, (int)y1);
-        triangle.addPoint((int)x2, (int)y2);
-        triangle.addPoint(outputState.getX(), outputState.getY());
-        g.fillPolygon(triangle);
         
         String text = "";
         for(String c : character)
