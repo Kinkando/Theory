@@ -30,6 +30,13 @@ public class Vertex {
         return ((x0-x)*(x0-x)+(y0-y)*(y0-y)) <= r*r;
     }
     
+    public boolean isInCircle(Rectangle selectArea) {
+        Rectangle area = new Rectangle(x-r, y-r, r*2, r*2);
+        return area.x >= selectArea.x && area.y >= selectArea.y &&
+               area.x+area.getWidth() <= selectArea.x+selectArea.getWidth() &&
+               area.y+area.getHeight() <= selectArea.y+selectArea.getHeight();
+    }
+    
     public String getName() {
         return name;
     }

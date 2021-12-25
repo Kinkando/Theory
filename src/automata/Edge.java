@@ -112,6 +112,25 @@ public class Edge {
         return ((x - xCenter) * (x - xCenter) + (y - yCenter) * (y - yCenter)) <= rCenter * rCenter ;
     }
     
+    boolean isInLine(Rectangle selectArea) {
+        Rectangle area = new Rectangle();
+        if(inputState != outputState) {
+            area.setBounds(new QuadCurve2D.Float(inputState.getX(), inputState.getY(), xCenter, yCenter, outputState.getX(), outputState.getY()).getBounds());
+        }
+        else{
+            double angle = Math.atan2(yCenter - inputState.getY(), xCenter - inputState.getX());
+            double dx = Math.cos(angle);
+            double dy = Math.sin(angle);
+            int rc = (int)(Vertex.r * Math.sqrt(2));
+            int xloop = inputState.getX() - Vertex.r + (int)(dx*rc);
+            int yloop = inputState.getY() - Vertex.r + (int)(dy*rc);
+            area.setBounds(xloop, yloop, Vertex.r*2, Vertex.r*2);
+        }
+        return area.x >= selectArea.x && area.y >= selectArea.y &&
+               area.x+area.getWidth() <= selectArea.x+selectArea.getWidth() &&
+               area.y+area.getHeight() <= selectArea.y+selectArea.getHeight();
+    }
+    
     public void draw(Graphics2D g) {
         g.setFont(Vertex.font);
         g.setColor(selected ? Vertex.highlightColor : Vertex.foregroundColor);
