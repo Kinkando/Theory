@@ -1107,9 +1107,9 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     public void mouseDragged(MouseEvent me) {
         final int x = me.getX();
         final int y = me.getY();
-        if(!selected.isEmpty() && !isToggleSelect())
+        if(!selected.isEmpty() && !isToggleSelect() && !contextsX.isEmpty() && !contextsY.isEmpty())
             frame.setCursor(new Cursor(Cursor.MOVE_CURSOR));
-        else
+        else 
             setCursor();
         if(createEdgeButton.isSelected() && tempEdge != null) {
             tempEdge.x = x;
@@ -1117,7 +1117,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             drawingPanel.repaint();
             return;
         }
-        else if(selectButton.isSelected()) {
+        else if(selectButton.isSelected() && SwingUtilities.isLeftMouseButton(me)) {
             final int startX = multipleSelectStartPoint.x < x ? multipleSelectStartPoint.x : x;
             final int startY = multipleSelectStartPoint.y < y ? multipleSelectStartPoint.y : y;
             final int width = Math.abs(multipleSelectStartPoint.x-x);
