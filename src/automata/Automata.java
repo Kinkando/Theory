@@ -72,8 +72,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                     tempEdge.line(g2d);
                 if(selectButton.isSelected()) {
                     final float dash1[] = { 10.0f };
-                    final BasicStroke dashed = new BasicStroke(1.0f,
-                    BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash1, 0.0f);
+                    final BasicStroke dashed = new BasicStroke(1.0f,BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash1, 0.0f);
                     g2d.setColor(Vertex.foregroundColor);
                     g2d.setStroke(dashed);
                     g2d.drawRect(selectSquare.x, selectSquare.y, selectSquare.width, selectSquare.height);
@@ -86,12 +85,12 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         undoButton = new JButton(new ImageIcon("assets/images/icons/undo.png"));
         redoButton = new JButton(new ImageIcon("assets/images/icons/redo.png"));
         clearButton = new JButton(new ImageIcon("assets/images/icons/delete.png"));
-        themeButton = new SwitchButton();
         selectButton = new JToggleButton(new ImageIcon("assets/images/icons/select.png"));
         createVertexButton = new JToggleButton(new ImageIcon("assets/images/icons/circle.png"));
         createEdgeButton = new JToggleButton(new ImageIcon("assets/images/icons/line.png"));
         inputAlphabetButton = new JButton(new ImageIcon("assets/images/icons/alphabet.png"));
         manualInputButton = new JButton(new ImageIcon("assets/images/icons/manual.png"));
+        themeButton = new SwitchButton();
         vertexs = new ArrayList<>();
         edges = new ArrayList<>();
         selected = new ArrayList<>();
@@ -1013,8 +1012,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 createEdge(x, y);
             }
             else {
-                if(selectButton.isSelected() && selectSquare.width == 0 && selectSquare.height == 0)
+                if(selectButton.isSelected() && selectSquare.width == 0 && selectSquare.height == 0) {
+                    detailFrame.setVisible(false);
                     return;
+                }
                 selected(x, y);
                 if(!selected.isEmpty())
                     frame.setCursor(new Cursor(Cursor.MOVE_CURSOR));
@@ -1092,6 +1093,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             }
             selectSquare.setBounds(0, 0, 0, 0); // dispose selectSquare when release
             drawingPanel.repaint();
+            displayDetailFrame();
         }
     }
 
@@ -1227,6 +1229,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 selected.add(e);
             }
             drawingPanel.repaint();
+            displayDetailFrame();
         }
         else if (key == 18 && clearButton.isEnabled())       // ctrl + r
             clearAction(null);
@@ -1293,13 +1296,6 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         int key = (int) ke.getKeyCode();
         if(key == 17)
             mode = "multiple";
-        // Add String mode = "Move" : "Multiple" : "Crop" mode;
-        // Press Ctrl + left click to multiple selected object
-        // Press Alt + left click to crop multiple object
-        // Change selected to ArrayList<Object>
-        // When multiple selected, then close detail frame
-        // When multiple selected and moved, then move all selected object
-        // except edges that xCenter and yCenter must not change
         
         // When multiple select, then display merge selected item
         // such as multiple only vertex, then can change accept state and
@@ -1308,9 +1304,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         // but considered data accuracy (must be correct only)
         // When multiple both of them, then close the detail frame
         
-        // ***** Can multiple only edge move *****
-        // ***** Can multiple only vertex move *****
-        // ***** Multiple both, move x, y on vertex and move only xCenter, yCenter on edge *****
+        // Copy selected object function (can multiple copy)
     }
 
     @Override
