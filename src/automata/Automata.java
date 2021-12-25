@@ -24,12 +24,14 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     private final ArrayList<Integer> contextsX = new ArrayList<>();
     private final ArrayList<Integer> contextsY = new ArrayList<>();
+    private final Point multipleSelectStartPoint;
+    private final Rectangle selectSquare;
     
     private final JFrame frame;
     private final JPanel drawingPanel, toolbarPanel;
     private final JButton openButton, saveButton, undoButton, redoButton, clearButton, inputAlphabetButton, manualInputButton;
     private final SwitchButton themeButton;
-    private final JToggleButton createVertexButton, createEdgeButton;
+    private final JToggleButton createVertexButton, createEdgeButton, selectButton;
     private final JInternalFrame detailFrame;
     private final StateHandle stateHandle;
     private static final int GAPS_X = 10, GAPS_Y = 10;
@@ -38,7 +40,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     public String[] inputAlphabet;
     private String mode = "default"; // default, multiple, create
     private TempEdge tempEdge;
-    private ArrayList<Object> selected;
+    private final ArrayList<Object> selected;
     private final TooltipText tooltipText;
     private final Color coverColorButton = new Color(188,234,236);
     
@@ -64,6 +66,9 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 });
                 if(tempEdge!=null)
                     tempEdge.line(g2d);
+                if(selectButton.isSelected()) {
+                    g2d.drawRect(selectSquare.x, selectSquare.y, selectSquare.width, selectSquare.height);
+                }
                 drawingPanel.requestFocusInWindow();
             }
         };
@@ -73,6 +78,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         redoButton = new JButton(new ImageIcon("assets/images/icons/redo.png"));
         clearButton = new JButton(new ImageIcon("assets/images/icons/delete.png"));
         themeButton = new SwitchButton();
+        selectButton = new JToggleButton(new ImageIcon("assets/images/icons/select.png"));
         createVertexButton = new JToggleButton(new ImageIcon("assets/images/icons/circle.png"));
         createEdgeButton = new JToggleButton(new ImageIcon("assets/images/icons/line.png"));
         inputAlphabetButton = new JButton(new ImageIcon("assets/images/icons/alphabet.png"));
@@ -84,6 +90,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         inputAlphabet[0] = "a";
         stateHandle = new StateHandle();
         tooltipText = new TooltipText();
+        multipleSelectStartPoint = new Point();
+        selectSquare = new Rectangle();
         
         subLabel1 = new JLabel();
         subLabel2 = new JLabel();
@@ -233,6 +241,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         undoButton.setName("Undo (Ctrl+Z)");
         redoButton.setName("Redo (Ctrl+Y)");
         clearButton.setName("Clear (Ctrl+R)");
+        selectButton.setName("Select (Ctrl+W)");
         createVertexButton.setName("Create Vertex (Ctrl+F)");
         createEdgeButton.setName("Create Edge (Ctrl+E)");
         inputAlphabetButton.setName("Input Alphabet (Ctrl+T)");
@@ -245,6 +254,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         toolbarPanel.add(undoButton);
         toolbarPanel.add(redoButton);
         toolbarPanel.add(clearButton);
+        toolbarPanel.add(selectButton);
         toolbarPanel.add(createVertexButton);
         toolbarPanel.add(createEdgeButton);
         toolbarPanel.add(inputAlphabetButton);
@@ -289,6 +299,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         undoButton.addActionListener(this::undoAction);
         redoButton.addActionListener(this::redoAction);
         clearButton.addActionListener(this::clearAction);
+        selectButton.addActionListener(this::selectAction);
         createVertexButton.addActionListener(this::createVertexAction);
         createEdgeButton.addActionListener(this::createEdgeAction);
         inputAlphabetButton.addActionListener(this::inputAlphabetAction);
@@ -457,26 +468,52 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         detailFrame.setVisible(false);
     }
     
-    private void createVertexAction(ActionEvent ae) {
+    private void setToggleButton(JToggleButton button) {
         setCursor();
         tooltipText.close();
-        if(createVertexButton.isSelected()) 
-            createVertexButton.setContentAreaFilled(true);
-        if(createEdgeButton.isSelected()) {
-            createEdgeButton.setSelected(false);
-            createEdgeButton.setContentAreaFilled(false);
+        for(Component c : toolbarPanel.getComponents()) 
+            if(c instanceof JToggleButton) {
+                JToggleButton toggle = (JToggleButton)c;
+                if(toggle == button && button.isSelected())
+                    button.setContentAreaFilled(true);
+                else if(toggle != button && toggle.isSelected()) {
+                    toggle.setSelected(false);
+                    toggle.setContentAreaFilled(false);
+                }
+            }
+    }
+    
+    private void cancelToggleSelect() {
+        for(Component c : toolbarPanel.getComponents()) 
+            if(c instanceof JToggleButton) {
+                JToggleButton toggle = (JToggleButton)c;
+                if(toggle.isSelected()) 
+                    toggle.setContentAreaFilled(false);
+                toggle.setSelected(false);
+            }
+    }
+    
+    private boolean isToggleSelect() {
+        for(Component c : toolbarPanel.getComponents()) {
+            if(c instanceof JToggleButton && ((JToggleButton)c).isSelected())
+                return true;
         }
+        return false;
+    }
+    
+    private void selectAction(ActionEvent ae) {
+        setToggleButton(selectButton);
+        drawingPanel.repaint();
+    }
+    
+    private void createVertexAction(ActionEvent ae) {
+        setToggleButton(createVertexButton);
+        drawingPanel.repaint();
     }
     
     private void createEdgeAction(ActionEvent ae) {
-        setCursor();
-        tooltipText.close();
-        if(createEdgeButton.isSelected()) 
-            createEdgeButton.setContentAreaFilled(true);
-        if(createVertexButton.isSelected()) {
-            createVertexButton.setSelected(false);
-            createVertexButton.setContentAreaFilled(false);
-        }
+        setToggleButton(createEdgeButton);
+        drawingPanel.repaint();
     }
     
     private void themeAction() {
@@ -894,17 +931,15 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         drawingPanel.repaint();
     }
     
-    private boolean cornerPosition(int x, int y) {
-        return x <= Vertex.r || x >= frame.getWidth()-Vertex.r*2 || y <= toolbarPanel.getHeight()+Vertex.r || y >= frame.getHeight()-Vertex.r*3;
-    }
+//    private boolean cornerPosition(int x, int y) {
+//        return x <= Vertex.r || x >= frame.getWidth()-Vertex.r*2 || y <= toolbarPanel.getHeight()+Vertex.r || y >= frame.getHeight()-Vertex.r*3;
+//    }
 
     //MouseListener
     @Override
     public void mouseClicked(MouseEvent me) {
         final int x = me.getX();
         final int y = me.getY();
-        if(cornerPosition(x, y))
-            return;
         if(SwingUtilities.isRightMouseButton(me)) { // Cancel drawing
             deselected();
             tempEdge = null;
@@ -932,6 +967,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     public void mousePressed(MouseEvent me) {
         final int x = me.getX();
         final int y = me.getY();
+        if(selectButton.isSelected()) {
+            multipleSelectStartPoint.setLocation(x, y);
+            return;
+        }
         contextsX.clear();
         contextsY.clear();
         if(!selected.isEmpty()) {
@@ -970,6 +1009,23 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         stateHandle.changeHandle(vertexs, edges);
         setEnabledButton();
         mouseMovedCursor(x, y);
+        if(selectButton.isSelected()) {
+            deselected();
+            for(Vertex v : vertexs) {
+                if(v.isInCircle(selectSquare)) {
+                    v.setSelected(true);
+                    selected.add(v);
+                }
+            }
+            for(Edge e : edges) {
+                if(e.isInLine(selectSquare)) {
+                    e.setSelected(true);
+                    selected.add(e);
+                }
+            }
+            selectSquare.setBounds(0, 0, 0, 0); // dispose selectSquare when release
+            drawingPanel.repaint();
+        }
     }
 
     @Override
@@ -987,16 +1043,25 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     public void mouseDragged(MouseEvent me) {
         final int x = me.getX();
         final int y = me.getY();
-        if(cornerPosition(x, y))
-            return;
+        if(!selected.isEmpty() && !isToggleSelect())
+            frame.setCursor(new Cursor(Cursor.MOVE_CURSOR));
+        else
+            setCursor();
         if(createEdgeButton.isSelected() && tempEdge != null) {
             tempEdge.x = x;
             tempEdge.y = y;
             drawingPanel.repaint();
             return;
         }
-        frame.setCursor(new Cursor(!selected.isEmpty() ? Cursor.MOVE_CURSOR : Cursor.DEFAULT_CURSOR));
-        if (!selected.isEmpty() && !contextsX.isEmpty() && !contextsY.isEmpty() && !createVertexButton.isSelected() && !createEdgeButton.isSelected()) {
+        else if(selectButton.isSelected()) {
+            final int startX = multipleSelectStartPoint.x < x ? multipleSelectStartPoint.x : x;
+            final int startY = multipleSelectStartPoint.y < y ? multipleSelectStartPoint.y : y;
+            final int width = Math.abs(multipleSelectStartPoint.x-x);
+            final int height = Math.abs(multipleSelectStartPoint.y-y);
+            selectSquare.setBounds(startX, startY, width, height);
+            drawingPanel.repaint();
+        }
+        if (!selected.isEmpty() && !contextsX.isEmpty() && !contextsY.isEmpty() && !isToggleSelect()) {
             boolean onlyEdge = true;
             for(int i=0; i<selected.size() && onlyEdge; i++) {
                 onlyEdge = selected.get(i) instanceof Edge;
@@ -1131,7 +1196,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     public void mouseMovedCursor(final int x, final int y) {
-        if(!selected.isEmpty() && !createVertexButton.isSelected() && !createEdgeButton.isSelected()) {
+        if(!selected.isEmpty() && !isToggleSelect()) {
             boolean isPointer = false;
             for(int i=0; i<selected.size() && !isPointer; i++){
                 Object obj = selected.get(i);
@@ -1142,12 +1207,14 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             }
             frame.setCursor(new Cursor(isPointer ? Cursor.MOVE_CURSOR : Cursor.DEFAULT_CURSOR));
         }
+        else
+            setCursor();
     }
     
     private void remove() {
         if (selected.isEmpty())
             return;
-        for(Object obj : selected) {
+        selected.forEach((obj) -> {
             if(obj instanceof Vertex) {
                 ArrayList<Edge> adjacencyEdge = new ArrayList<>();
                 for (Edge t : edges)
@@ -1161,7 +1228,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             else if(obj instanceof Edge) {
                 edges.remove((Edge)obj);
             }
-        }
+        });
         selected.clear();
     }
     
@@ -1173,7 +1240,19 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             and remain point at selected object, then must be change cursor to Cursor.MOVE
         */
         int key = (int) ke.getKeyChar();
-        if (key == 18 && clearButton.isEnabled())       // ctrl + r
+        if(key == 1) {  // ctrl+a
+            deselected();
+            for(Vertex v : vertexs) {
+                v.setSelected(true);
+                selected.add(v);
+            }
+            for(Edge e : edges) {
+                e.setSelected(true);
+                selected.add(e);
+            }
+            drawingPanel.repaint();
+        }
+        else if (key == 18 && clearButton.isEnabled())       // ctrl + r
             clearAction(null);
         else if (key == 19) {
             saveButton.setContentAreaFilled(true);
@@ -1187,44 +1266,45 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
             redoAction(null);
         else if(key == 26 && undoButton.isEnabled())    //ctrl + z
             undoAction(null);  
-        else if(key == 5) {
+        else if(key == 23) {    //ctrl+w
+            selectButton.setSelected(!selectButton.isSelected());
+            selectAction(null);
+            if(!selectButton.isSelected())
+                selectButton.setContentAreaFilled(false);
+        }
+        else if(key == 5) {     //ctrl+e
             createEdgeButton.setSelected(!createEdgeButton.isSelected());
             createEdgeAction(null);
             if(!createEdgeButton.isSelected()) 
                 createEdgeButton.setContentAreaFilled(false);
         } 
-        else if(key == 6) {
+        else if(key == 6) {     //ctrl+f
             createVertexButton.setSelected(!createVertexButton.isSelected());
             createVertexAction(null);
             if(!createVertexButton.isSelected()) 
                 createVertexButton.setContentAreaFilled(false);
         }
-        else if(key == 10) {
+        else if(key == 10) {    //ctrl+m
             manualInputButton.setContentAreaFilled(true);
             manualInputAction(null);
         }
-        else if(key == 20) {
+        else if(key == 20) {    //ctrl+t
             inputAlphabetButton.setContentAreaFilled(true);
             inputAlphabetAction(null);
         }
-        else if(key == 127) {
+        else if(key == 127) {   //delete
             remove();
             tempEdge = null;
             detailFrame.setVisible(false);
             drawingPanel.repaint();
         }
         else if(key == 27) { // ESC 
-            if(!detailFrame.isVisible() && (createVertexButton.isSelected() | createEdgeButton.isSelected())) {
-                if(createVertexButton.isSelected()) 
-                    createVertexButton.setContentAreaFilled(false);
-                if(createEdgeButton.isSelected()) 
-                    createEdgeButton.setContentAreaFilled(false);
-                createVertexButton.setSelected(false);
-                createEdgeButton.setSelected(false);
+            if(!detailFrame.isVisible() && isToggleSelect()) {
+                cancelToggleSelect();
                 tempEdge = null;
                 setCursor();
             }
-            else if(!createVertexButton.isSelected() && !createEdgeButton.isSelected() && !detailFrame.isVisible() && !selected.isEmpty()) {
+            else if(!isToggleSelect() && !detailFrame.isVisible() && !selected.isEmpty()) {
                 deselected();
             }
             detailFrame.setVisible(false);
@@ -1263,10 +1343,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void setCursor() {
-        if(createVertexButton.isSelected() || createEdgeButton.isSelected())
-            frame.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
-        else
-            frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        frame.setCursor(new Cursor(isToggleSelect() ? Cursor.CROSSHAIR_CURSOR : Cursor.DEFAULT_CURSOR));
     }
     
     public static void main(String[] args) {
