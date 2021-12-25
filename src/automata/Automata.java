@@ -717,7 +717,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 subField1.setText(v.getName());
                 subSwitch2.setActivated(v.isInitialState());
                 subSwitch3.setActivated(v.isAcceptedState());
-                objectArea.setBounds(v.getX()-Vertex.r, v.getY()-Vertex.r, Vertex.r*2, Vertex.r*2);
+                objectArea.setBounds(v.getShape());
             } 
             else {
                 Edge e = (Edge) selected.get(0);
@@ -733,12 +733,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 subField2.setText(inputCharacters);
                 subField3.setText(e.getOutputState().getName());
                 subField3.setEditable(false);
-                objectArea.setFrameFromDiagonal(e.getInputState().getX(), e.getInputState().getY(), e.getOutputState().getX(), e.getOutputState().getY());
-                
-                /*
-                    if create or select Loop Edge, then must be change size and position of objectArea Rectangle
-                    detailFrame overlap with loop edge
-                */
+                objectArea.setBounds(e.getShape());
             }
             subField1.setEditable(selected.get(0) instanceof Vertex);
             subSwitch2.setVisible(selected.get(0) instanceof Vertex);
@@ -1305,6 +1300,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         // When multiple both of them, then close the detail frame
         
         // Copy selected object function (can multiple copy)
+        
+        // Calculate new Edge (quadCurve2D)
+        // Can click on character (in edge line) to change position that 
+        // Calculate new Character on edge position
     }
 
     @Override
