@@ -1013,6 +1013,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 createEdge(x, y);
             }
             else {
+                if(selectButton.isSelected() && selectSquare.width == 0 && selectSquare.height == 0)
+                    return;
                 selected(x, y);
                 if(!selected.isEmpty())
                     frame.setCursor(new Cursor(Cursor.MOVE_CURSOR));
