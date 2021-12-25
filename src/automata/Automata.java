@@ -964,6 +964,8 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
     }
     
     private void setDraggedEdgePosition(int x, int y) {
+        final int diffX = x-pointPress.x;
+        final int diffY = y-pointPress.y;
         for (int i=0;i<edgeMove.size();i++) {
             Edge e = edgeMove.get(i);
             Point p = edgePoint.get(i);
@@ -978,19 +980,17 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 if(v1 == vertex || v2 == vertex) 
                     adjacencyCount++;
             }
-            //////////////////////////////////////
             if(adjacencyCount == 1 && v1 != v2) {
-                e.setXCenter(p.x+(x-pointPress.x));
-                e.setYCenter(p.y+(y-pointPress.y));
-                e.setXCharacter(cP.x+(x-pointPress.x));
-                e.setYCharacter(cP.y+(y-pointPress.y));
+                e.setXCenter(p.x+(diffX/2));
+                e.setYCenter(p.y+(diffY/2));
+                e.setXCharacter(cP.x+(diffX/2));
+                e.setYCharacter(cP.y+(diffY/2));
             }
-            //////////////////////////////////////
             else {
-                e.setXCenter(p.x+(x-pointPress.x));
-                e.setYCenter(p.y+(y-pointPress.y));
-                e.setXCharacter(cP.x+(x-pointPress.x));
-                e.setYCharacter(cP.y+(y-pointPress.y));
+                e.setXCenter(p.x+diffX);
+                e.setYCenter(p.y+diffY);
+                e.setXCharacter(cP.x+diffX);
+                e.setYCharacter(cP.y+diffY);
             }
         }
     }
