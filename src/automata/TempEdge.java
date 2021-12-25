@@ -1,6 +1,7 @@
 package automata;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 
 public class TempEdge {
     public Vertex source;
@@ -14,6 +15,15 @@ public class TempEdge {
 
     public void setA(Vertex source) {
         this.source = source;
+    }
+    
+    public Point2D.Double getPoint() {
+        double d = Math.sqrt(Math.pow(x-source.getX(), 2) + Math.pow(y-source.getY(), 2));
+        double d2 = d - Vertex.r;
+        double ratio = d2/d;
+        double dx = (x-source.getX()) * ratio;
+        double dy = (y-source.getY()) * ratio;
+        return new Point.Double(x-dx, y-dy);
     }
 
     public void line(Graphics2D g) {
@@ -31,7 +41,10 @@ public class TempEdge {
             
             g.drawArc(xloop, yloop , source.r*2, source.r*2, 0, 360); 
         }
-        else
-            g.drawLine(source.getX(), source.getY(), x, y);
+        else {
+//            Point2D.Double start = new Point2D.Double(source.getX(), source.getY());
+            Point2D.Double start = getPoint();
+            g.drawLine((int)start.x, (int)start.y, x, y);
+        }
     }
 }
