@@ -1202,6 +1202,14 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 edges.remove((Edge)obj);
             }
         });
+        if(!selected.isEmpty()) {
+            redoButton.setEnabled(false);
+            detailFrame.setVisible(false);
+        }
+        if(vertexs.isEmpty() && edges.isEmpty()) {
+            clearButton.setContentAreaFilled(false);
+            clearButton.setEnabled(false);
+        }
         selected.clear();
     }
     
