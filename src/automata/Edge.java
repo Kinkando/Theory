@@ -2,7 +2,6 @@ package automata;
 
 import java.awt.*;
 import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
 import java.awt.geom.QuadCurve2D;
 
 public class Edge {
