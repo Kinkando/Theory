@@ -108,11 +108,7 @@ public class Edge {
         return str.substring(0, str.length()-2);
     }
     
-    boolean isInLine(int x, int y) {
-        return ((x - xCenter) * (x - xCenter) + (y - yCenter) * (y - yCenter)) <= rCenter * rCenter ;
-    }
-    
-    boolean isInLine(Rectangle selectArea) {
+    public Rectangle getShape() {
         Rectangle area = new Rectangle();
         if(inputState != outputState) {
             area.setBounds(new QuadCurve2D.Float(inputState.getX(), inputState.getY(), xCenter, yCenter, outputState.getX(), outputState.getY()).getBounds());
@@ -126,6 +122,15 @@ public class Edge {
             int yloop = inputState.getY() - Vertex.r + (int)(dy*rc);
             area.setBounds(xloop, yloop, Vertex.r*2, Vertex.r*2);
         }
+        return area;
+    }
+    
+    public boolean isInLine(int x, int y) {
+        return ((x - xCenter) * (x - xCenter) + (y - yCenter) * (y - yCenter)) <= rCenter * rCenter ;
+    }
+    
+    public boolean isInLine(Rectangle selectArea) {
+        Rectangle area = getShape();
         return area.x >= selectArea.x && area.y >= selectArea.y &&
                area.x+area.getWidth() <= selectArea.x+selectArea.getWidth() &&
                area.y+area.getHeight() <= selectArea.y+selectArea.getHeight();

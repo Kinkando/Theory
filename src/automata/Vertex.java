@@ -26,17 +26,6 @@ public class Vertex {
         this(x, y, false, false);
     }
     
-    public boolean isInCircle(int x0, int y0) {
-        return ((x0-x)*(x0-x)+(y0-y)*(y0-y)) <= r*r;
-    }
-    
-    public boolean isInCircle(Rectangle selectArea) {
-        Rectangle area = new Rectangle(x-r, y-r, r*2, r*2);
-        return area.x >= selectArea.x && area.y >= selectArea.y &&
-               area.x+area.getWidth() <= selectArea.x+selectArea.getWidth() &&
-               area.y+area.getHeight() <= selectArea.y+selectArea.getHeight();
-    }
-    
     public String getName() {
         return name;
     }
@@ -83,6 +72,21 @@ public class Vertex {
 
     public void setAcceptedState(boolean acceptedState) {
         this.acceptedState = acceptedState;
+    }
+    
+    public Rectangle getShape() {
+        return new Rectangle(x-r, y-r, r*2, r*2);
+    }
+    
+    public boolean isInCircle(int x0, int y0) {
+        return ((x0-x)*(x0-x)+(y0-y)*(y0-y)) <= r*r;
+    }
+    
+    public boolean isInCircle(Rectangle selectArea) {
+        Rectangle area = getShape();
+        return area.x >= selectArea.x && area.y >= selectArea.y &&
+               area.x+area.getWidth() <= selectArea.x+selectArea.getWidth() &&
+               area.y+area.getHeight() <= selectArea.y+selectArea.getHeight();
     }
     
     public void draw(Graphics2D g) {
