@@ -363,6 +363,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                 showErrorMaterialDialog("Error", "Can not open file '"+fd.getFile()+"'");
             open(fd.getDirectory()+fd.getFile());
             drawingPanel.repaint();
+            stateHandle.changeHandle(vertexs, edges);
+            undoButton.setEnabled(stateHandle.undoIsEnabled());
+            redoButton.setEnabled(stateHandle.redoIsEnabled());
+            clearButton.setEnabled(!vertexs.isEmpty() && !edges.isEmpty());
         }
         openButton.setContentAreaFilled(false);
     }
@@ -1312,6 +1316,10 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
         // Calculate new Edge (quadCurve2D)
         // Can click on character (in edge line) to change position that 
         // Calculate new Character on edge position
+        
+        // Bug when pointer at save button, then ctrl+O to open file and close
+        // it remains highlight at save button although current mouse position 
+        // not pointer at save button, it must pointer around toolbarPanel to cancel
     }
 
     @Override
