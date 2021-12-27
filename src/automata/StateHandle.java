@@ -23,7 +23,7 @@ public class StateHandle {
         connect(vertex, edge);
         ArrayList<Object> current = addList(vertex, edge);
         // Remove same top of stack with current state
-        while(!isChange(vertexs, edges, current)) {
+        while(!isChange(current)) {
             if(!undo.isEmpty()) {
                 undo.pop();
             }
@@ -67,7 +67,7 @@ public class StateHandle {
         return false;
     }
     
-    private boolean isChange(ArrayList<Vertex> vertexs, ArrayList<Edge> edges, ArrayList<Object> action) {
+    private boolean isChange(ArrayList<Object> action) {
         ArrayList<Object> undoItem = !undo.isEmpty() ? undo.peek() : new ArrayList<>();
         if(undoItem.size()==action.size()) {
             boolean change = false;
@@ -90,7 +90,7 @@ public class StateHandle {
         });
         connect(vertex, edge);
         ArrayList<Object> action = addList(vertex, edge);
-        if(isChange(vertexs, edges, action)) {
+        if(isChange(action)) {
             undo.add(action);
             redo.clear();
         }
@@ -108,7 +108,7 @@ public class StateHandle {
     }
     
     private void connect(ArrayList<Vertex> vertexs, ArrayList<Edge> edges) {
-        // Add reference object of Vertex to Edge (if Vertex change, then edge change, too)
+        // Add reference object of Vertex to Edge (if Vertex change, then Edge change, too)
         for (Edge e : edges) {
             e.setSelected(false);
             if (e.getInputState() != null) {
