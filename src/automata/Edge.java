@@ -12,6 +12,21 @@ public class Edge {
     private boolean selected;
     private int characterWidth, characterHeight, xCenter, yCenter, rCenter, xCharacter, yCharacter;
     
+    // Copy Constructor (Copy Object by value)
+    public Edge(Edge edge) {
+        inputState = edge.getInputState();
+        outputState = edge.getOutputState();
+        character = new String[edge.getCharacter().length];
+        for(int i=0; i<edge.getCharacter().length; i++)
+            character[i] = edge.getCharacter()[i];
+        selected = false;
+        xCenter = edge.getXCenter();
+        yCenter = edge.getYCenter();
+        rCenter = 50;
+        xCharacter = edge.getXCharacter();
+        yCharacter = edge.getYCharacter();
+    }
+    
     public Edge(Vertex source, Vertex target) {
         inputState = source;
         outputState = target;

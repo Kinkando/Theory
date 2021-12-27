@@ -3,12 +3,22 @@ package automata;
 import java.awt.*;
 
 public class Vertex {
-    private int x, y, id, nameWidth, nameHeight;
+    private int x, y, nameWidth, nameHeight;
     private String name;
     private boolean initialState, acceptedState, selected;
     public static int stroke = 2, r = 24, shift = 16;
     public static Color foregroundColor = Color.BLACK, backgroundColor = Color.WHITE, highlightColor = Color.RED;
     public static Font font = new Font("TH Sarabun New", Font.PLAIN, 24);
+    
+    // Copy Constructor (Copy Object by value)
+    public Vertex(Vertex v) {
+        x = v.getX();
+        y = v.getY();
+        name = v.getName();
+        initialState = v.isInitialState();
+        acceptedState = v.isAcceptedState();
+        selected = false;
+    }
     
     public Vertex(int x, int y, boolean acceptedState, boolean initialState) {
         this.x = x;
