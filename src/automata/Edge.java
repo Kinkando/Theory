@@ -151,6 +151,14 @@ public class Edge {
         return new Point.Double(inputState.getX()+dx, inputState.getY()+dy);
     }
     
+    public Point.Double getCenter(Point.Double start, Point.Double end) {
+        double cX = xCenter + (xCenter-(end.x+start.x)/2);
+        double cY = yCenter + (yCenter-(end.y+start.y)/2);
+//        double cX = xCenter;
+//        double cY = yCenter;
+        return new Point.Double(cX, cY);
+    }
+    
     public void draw(Graphics2D g) {
         g.setFont(Vertex.font);
         g.setColor(selected ? Vertex.highlightColor : Vertex.foregroundColor);
@@ -160,9 +168,10 @@ public class Edge {
         final Point.Double end = getPoint("end");
 //        final Point.Double start = new Point.Double(inputState.getX(), inputState.getY());
 //        final Point.Double end = new Point.Double(outputState.getX(), outputState.getY());
+        final Point.Double center = getCenter(start, end);
         
         //triangle of arrow
-        double angle = Math.atan2((end.y - yCenter), (end.x - xCenter)) - Math.PI / 2.0;
+        double angle = Math.atan2((end.y - center.y), (end.x - center.x)) - Math.PI / 2.0;
         double sin = Math.sin(angle);
         double cos = Math.cos(angle);
 
@@ -181,7 +190,7 @@ public class Edge {
         g.fill(path);
         
         if(inputState != outputState) {
-            g.draw(new QuadCurve2D.Double(start.x, start.y, xCenter, yCenter, end.x, end.y));
+            g.draw(new QuadCurve2D.Double(start.x, start.y, center.x, center.y, end.x, end.y));
         }
         else{
             angle = Math.atan2(yCenter - inputState.getY(), xCenter - inputState.getX());
