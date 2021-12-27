@@ -15,10 +15,10 @@ public class StateHandle {
         ArrayList<Vertex> vertex = new ArrayList<>();
         ArrayList<Edge> edge = new ArrayList<>();
         vertexs.forEach((v) -> {
-            vertex.add(new Vertex(v));
+            vertex.add(Vertex.factory(v));
         });
         edges.forEach((e) -> {
-            edge.add(new Edge(e));
+            edge.add(Edge.factory(e));
         });
         connect(vertex, edge);
         ArrayList<Object> current = addList(vertex, edge);
@@ -83,10 +83,10 @@ public class StateHandle {
         ArrayList<Vertex> vertex = new ArrayList<>();
         ArrayList<Edge> edge = new ArrayList<>();
         vertexs.forEach((v) -> {
-            vertex.add(new Vertex(v));
+            vertex.add(Vertex.factory(v));
         });
         edges.forEach((e) -> {
-            edge.add(new Edge(e));
+            edge.add(Edge.factory(e));
         });
         connect(vertex, edge);
         ArrayList<Object> action = addList(vertex, edge);

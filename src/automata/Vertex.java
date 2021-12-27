@@ -10,6 +10,11 @@ public class Vertex {
     public static Color foregroundColor = Color.BLACK, backgroundColor = Color.WHITE, highlightColor = Color.RED;
     public static Font font = new Font("TH Sarabun New", Font.PLAIN, 24);
     
+    // Copy Factory
+    public static Vertex factory(Vertex vertex) {
+        return new Vertex(vertex);
+    }
+    
     // Copy Constructor (Copy Object by value)
     public Vertex(Vertex v) {
         x = v.getX();

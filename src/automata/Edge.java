@@ -12,6 +12,11 @@ public class Edge {
     private boolean selected;
     private int characterWidth, characterHeight, xCenter, yCenter, rCenter, xCharacter, yCharacter;
     
+    // Copy Factory
+    public static Edge factory(Edge edge) {
+        return new Edge(edge);
+    }
+    
     // Copy Constructor (Copy Object by value)
     public Edge(Edge edge) {
         inputState = edge.getInputState();
