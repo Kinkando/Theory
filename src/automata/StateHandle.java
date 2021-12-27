@@ -13,12 +13,12 @@ public class StateHandle {
     
     public void undo(ArrayList<Vertex> vertexs, ArrayList<Edge> edges) {
         final ArrayList<Object> inputRedo = new ArrayList<>();
-        for(Vertex v : vertexs) {
+        vertexs.forEach((v) -> {
             inputRedo.add(new Vertex(v));
-        }
-        for(Edge ed : edges) {
+        });
+        edges.forEach((ed) -> {
             inputRedo.add(new Edge(ed));
-        }
+        });
         // Remove same top of stack with current state
         while(!isChange(vertexs, edges, inputRedo)) {
             if(!undo.isEmpty()) {
