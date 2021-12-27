@@ -795,6 +795,7 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                     ((Vertex) tempSelected).setSelected(false);
                 else if(tempSelected instanceof Edge) 
                     ((Edge) tempSelected).setSelected(false);
+                selected.remove(tempSelected);
             }
             else
                 selected.add(tempSelected);
