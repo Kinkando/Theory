@@ -12,21 +12,24 @@ public class StateHandle {
     }
     
     public void undo(ArrayList<Vertex> vertexs, ArrayList<Edge> edges) {
-        final ArrayList<Object> inputRedo = new ArrayList<>();
+        ArrayList<Vertex> vertex = new ArrayList<>();
+        ArrayList<Edge> edge = new ArrayList<>();
         vertexs.forEach((v) -> {
-            inputRedo.add(new Vertex(v));
+            vertex.add(new Vertex(v));
         });
-        edges.forEach((ed) -> {
-            inputRedo.add(new Edge(ed));
+        edges.forEach((e) -> {
+            edge.add(new Edge(e));
         });
+        connect(vertex, edge);
+        ArrayList<Object> current = addList(vertex, edge);
         // Remove same top of stack with current state
-        while(!isChange(vertexs, edges, inputRedo)) {
+        while(!isChange(vertexs, edges, current)) {
             if(!undo.isEmpty()) {
                 undo.pop();
             }
         }
         backtrack(undo, vertexs, edges);
-        redo.push(!inputRedo.isEmpty() ? inputRedo : new ArrayList<>());
+        redo.push(!current.isEmpty() ? current : new ArrayList<>());
     }
     
     public void redo(ArrayList<Vertex> vertexs, ArrayList<Edge> edges) {
@@ -40,9 +43,9 @@ public class StateHandle {
         if(!stack.isEmpty()) {
             stack.peek().forEach((obj) -> {
                 if(obj instanceof Vertex) 
-                    vertexs.add(new Vertex((Vertex)obj));
+                    vertexs.add((Vertex)obj);
                 else 
-                    edges.add(new Edge((Edge)obj));
+                    edges.add((Edge)obj);
             });
         }
     }
@@ -64,7 +67,7 @@ public class StateHandle {
         return false;
     }
     
-    public boolean isChange(ArrayList<Vertex> vertexs, ArrayList<Edge> edges, ArrayList<Object> action) {
+    private boolean isChange(ArrayList<Vertex> vertexs, ArrayList<Edge> edges, ArrayList<Object> action) {
         ArrayList<Object> undoItem = !undo.isEmpty() ? undo.peek() : new ArrayList<>();
         if(undoItem.size()==action.size()) {
             boolean change = false;
@@ -77,16 +80,55 @@ public class StateHandle {
     }
     
     public void changeHandle(ArrayList<Vertex> vertexs, ArrayList<Edge> edges) {
-        ArrayList<Object> action = new ArrayList<>();
+        ArrayList<Vertex> vertex = new ArrayList<>();
+        ArrayList<Edge> edge = new ArrayList<>();
         vertexs.forEach((v) -> {
-            action.add(new Vertex(v));
+            vertex.add(new Vertex(v));
         });
         edges.forEach((e) -> {
-            action.add(new Edge(e));
+            edge.add(new Edge(e));
         });
+        connect(vertex, edge);
+        ArrayList<Object> action = addList(vertex, edge);
         if(isChange(vertexs, edges, action)) {
             undo.add(action);
             redo.clear();
+        }
+    }
+    
+    private ArrayList<Object> addList(ArrayList<Vertex> vertex, ArrayList<Edge> edge) {
+        ArrayList<Object> list = new ArrayList<>();
+        vertex.forEach((v) -> {
+            list.add(v);
+        });
+        edge.forEach((e) -> {
+            list.add(e);
+        });
+        return list;
+    }
+    
+    private void connect(ArrayList<Vertex> vertexs, ArrayList<Edge> edges) {
+        // Add reference object of Vertex to Edge (if Vertex change, then edge change, too)
+        for (Edge e : edges) {
+            e.setSelected(false);
+            if (e.getInputState() != null) {
+                String name = e.getInputState().getName();
+                for (Vertex v : vertexs) {
+                    if (v.getName().equals(name)) {
+                        e.setInputState(v);
+                        break;
+                    }
+                }
+            }
+            if (e.getOutputState() != null) {
+                String name = e.getOutputState().getName();
+                for (Vertex v : vertexs) {
+                    if (v.getName().equals(name)) {
+                        e.setOutputState(v);
+                        break;
+                    }
+                }
+            }
         }
     }
     
