@@ -1,6 +1,8 @@
 package automata;
 
+import static automata.Edge.ARROW_HEAD_SIZE;
 import java.awt.*;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 
 public class TempEdge {
@@ -44,6 +46,26 @@ public class TempEdge {
         else {
 //            Point2D.Double start = new Point2D.Double(source.getX(), source.getY());
             Point2D.Double start = getPoint();
+            
+            //triangle of arrow
+            double angle = Math.atan2((y - start.y), (x - start.x)) - Math.PI / 2.0;
+            double sin = Math.sin(angle);
+            double cos = Math.cos(angle);
+
+            //point1 of arrow
+            double x1 = (- 1.0 / 2.0 * cos + Math.sqrt(3) / 2 * sin) * ARROW_HEAD_SIZE + x;
+            double y1 = (- 1.0 / 2.0 * sin - Math.sqrt(3) / 2 * cos) * ARROW_HEAD_SIZE + y;
+            //point2 of arrow
+            double x2 = (1.0 / 2.0 * cos + Math.sqrt(3) / 2 * sin) * ARROW_HEAD_SIZE + x;
+            double y2 = (1.0 / 2.0 * sin - Math.sqrt(3) / 2 * cos) * ARROW_HEAD_SIZE + y;
+
+            Path2D path = new Path2D.Double();
+            path.moveTo(x, y);
+            path.lineTo(x1, y1);
+            path.lineTo(x2, y2);
+            path.closePath();
+            g.fill(path);
+            
             g.drawLine((int)start.x, (int)start.y, x, y);
         }
     }
