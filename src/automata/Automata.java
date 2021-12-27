@@ -1017,8 +1017,13 @@ public class Automata implements MouseListener, MouseMotionListener, KeyListener
                     return;
                 }
                 selected(x, y);
-                if(!selected.isEmpty())
-                    frame.setCursor(new Cursor(Cursor.MOVE_CURSOR));
+                boolean isInSelectedArea = false;
+                for(Object obj : selected) {
+                    isInSelectedArea = obj instanceof Vertex && ((Vertex)obj).isInCircle(x, y) || obj instanceof Edge && ((Edge)obj).isInLine(x, y);
+                    if(isInSelectedArea)
+                        break;
+                }
+                frame.setCursor(new Cursor(isInSelectedArea ? Cursor.MOVE_CURSOR : Cursor.DEFAULT_CURSOR));
                 return;
             }
         }
