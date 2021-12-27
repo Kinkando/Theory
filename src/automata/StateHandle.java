@@ -43,10 +43,11 @@ public class StateHandle {
         if(!stack.isEmpty()) {
             stack.peek().forEach((obj) -> {
                 if(obj instanceof Vertex) 
-                    vertexs.add((Vertex)obj);
+                    vertexs.add(Vertex.factory((Vertex)obj));
                 else 
-                    edges.add((Edge)obj);
+                    edges.add(Edge.factory((Edge)obj));
             });
+            connect(vertexs, edges);
         }
     }
     
