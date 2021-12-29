@@ -5,7 +5,7 @@ import javax.swing.*;
 import java.awt.event.*;
 
 public class SwitchButton extends JPanel implements ActionListener{
-    private boolean activated, border , animated;
+    private boolean activated, border , animated, outside;
     private Color switchColor, activatedColor, inactivatedColor;
     private int togglePosition, activatedPosition, inactivatedPosition, speed, delay;
     private final int space;
@@ -18,6 +18,7 @@ public class SwitchButton extends JPanel implements ActionListener{
         activated = false;
         border = false;
         animated = true;
+        outside = true;
         switchColor = Color.WHITE;
         activatedColor = Color.GREEN;
         inactivatedColor = Color.RED;
@@ -38,7 +39,7 @@ public class SwitchButton extends JPanel implements ActionListener{
                 }
             }
         });
-        inactivatedPosition = space/2+1;
+        inactivatedPosition = !outside ? space/2+1 : 0;
         togglePosition = inactivatedPosition;
         time = new Timer(delay, this);
         time.setInitialDelay(0);
@@ -65,32 +66,38 @@ public class SwitchButton extends JPanel implements ActionListener{
         }
     }
     
+    public void setOutside(boolean outside) {
+        this.outside = outside;
+        resizePosition();
+    }
+    
     @Override
     public void setSize(Dimension d) {
         super.setSize(d);
-        resizeActivatedPosition();
+        resizePosition();
     }
     
     @Override
     public void setSize(int width, int height) {
         super.setSize(width, height);
-        resizeActivatedPosition();
+        resizePosition();
     }
 
     @Override
     public void setBounds(Rectangle rctngl) {
         super.setBounds(rctngl);
-        resizeActivatedPosition();
+        resizePosition();
     }
 
     @Override
     public void setBounds(int i, int i1, int i2, int i3) {
         super.setBounds(i, i1, i2, i3);
-        resizeActivatedPosition();
+        resizePosition();
     }
     
-    public void resizeActivatedPosition() {
-        activatedPosition = getWidth()-(getHeight()/2)*2+space/2;
+    public void resizePosition() {
+        inactivatedPosition = !outside ? space/2+1 : 0;
+        activatedPosition = !outside ? getWidth()-(getHeight()/2)*2+space/2 : getWidth()-getHeight();
     }
 
     public boolean isActivated() {
@@ -162,21 +169,42 @@ public class SwitchButton extends JPanel implements ActionListener{
     public void paint(Graphics gr) {
         super.paint(gr);
         final int radius = getHeight()/2;
+        inactivatedPosition = !outside ? space/2+1 : 0;
+        activatedPosition = !outside ? getWidth()-(getHeight()/2)*2+space/2 : getWidth()-getHeight();
         final int position = animated ? togglePosition : (activated ? activatedPosition : inactivatedPosition);
         Graphics2D g = (Graphics2D) gr;
         g.setStroke(new BasicStroke(1));
         
-        // Button Body
+        
         g.setColor(activated ? activatedColor : inactivatedColor);
-        g.fillRect(radius, 1, getWidth()-radius*2, getHeight()-2);
-        g.fillArc(1, 0, radius*2-1, radius*2-1, 270, -180);
-        g.fillArc(getWidth()-radius*2, 0, radius*2-1, radius*2-1, 90, -180);
         
-        // Button Switch
-        g.setColor(switchColor);
-        g.fillOval(position, space/2, radius*2-1-space, radius*2-1-space);
+        if(outside) {
+            double ratio = 0.75;
+            int gap = (int)((1-ratio)/2*getHeight());
+            int height = (int)(ratio*getHeight());
+            int width = getWidth()-(gap*2+height);
+            
+            // Button Body
+            g.fillRect(gap+height/2, gap+1, width, height-1);
+            g.fillArc(gap, gap, height, height, 270, -180);
+            g.fillArc(getWidth()-gap-height-1, gap, height, height, 90, -180);
+
+            // Button Switch
+            g.setColor(switchColor);
+            g.fillOval(position, 0, radius*2, radius*2);
+        }
+        else {
+            // Button Body
+            g.fillRect(radius, 1, getWidth()-radius*2, getHeight()-2);
+            g.fillArc(1, 0, radius*2-1, radius*2-1, 270, -180);
+            g.fillArc(getWidth()-radius*2, 0, radius*2-1, radius*2-1, 90, -180);
+    
+            // Button Switch
+            g.setColor(switchColor);
+            g.fillOval(position, space/2, radius*2-1-space, radius*2-1-space);
+        }
         
-        if(border) {
+        if(border && !outside) {
             // Button Body Border
             g.setColor(Color.black);
             g.drawLine(radius, 0, radius+getWidth()-radius*2, 0);   // if stroke = 1 then y = 0, otherwise y = 1
